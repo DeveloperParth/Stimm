@@ -2,6 +2,12 @@
 /.pnp
 .pnp.js
 
+# exclude everything
+uploads/*
+
+# exception to the rule
+!uploads/.gitkeep 
+
 # testing
 /coverage
 
