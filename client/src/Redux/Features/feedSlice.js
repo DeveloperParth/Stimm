@@ -24,6 +24,9 @@ const feedSlice = createSlice({
             state.posts = []
             state.error = ''
         },
+        setPostBookmark: (state, { payload }) => {
+            state.posts[payload.index] = payload.post
+        },
         setPostLike: (state, { payload }) => {
             state.posts[payload.index] = payload.post
         },
@@ -53,4 +56,4 @@ const feedSlice = createSlice({
 })
 
 export default feedSlice.reducer
-export const { clearFeed, setPostLike, addOwnPost, removePost } = feedSlice.actions
+export const { clearFeed, setPostLike, addOwnPost, removePost, setPostBookmark } = feedSlice.actions

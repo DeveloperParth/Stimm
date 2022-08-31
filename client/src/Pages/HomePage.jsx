@@ -1,12 +1,21 @@
-import React from "react";
-import Post from "./../Components/Post";
+import React, { useEffect, useState } from "react";
+
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
 import { fetchFeed } from "../Redux/Features/feedSlice";
-import { useState } from "react";
-import { ActionIcon } from "@mantine/core";
+
+import Post from "./../Components/Post/Post";
+import CreatePost from "../Components/Post/CreatePost";
+
+import {
+  ActionIcon,
+  Box,
+  Container,
+  Group,
+  Loader,
+  Title,
+} from "@mantine/core";
 import { IconPlus } from "@tabler/icons";
-import CreatePost from "../Components/CreatePost";
+import { Outlet } from "react-router-dom";
 
 function HomePage() {
   const dispatch = useDispatch();
@@ -17,31 +26,51 @@ function HomePage() {
     dispatch(fetchFeed());
   }, [dispatch]);
   const mappedPosts = feed.posts.map((post, i) => {
-    if (post.author._id === auth.user?._id) {
-      return (
-        <Post post={{ ...post, isOwner: true }} index={i} key={post._id} />
-      );
-    }
-    return <Post post={post} index={i} key={post._id} />;
+    return (
+      <Post
+        post={{ ...post, isOwner: post.author._id === auth.user?._id }}
+        index={i}
+        key={post._id}
+      />
+    );
   });
-  if (feed.loading) return <>Loading...</>;
   return (
     <>
       <CreatePost opened={isCreatePostOpen} setOpened={setIsCreatePostOpen} />
-      <div className="feed">
-        <div className="feed__header">
-          <h2>Home</h2>
-          <div style={{ width: "80%" }}></div>
-          <ActionIcon
-            variant="filled"
-            size="md"
-            onClick={() => setIsCreatePostOpen(true)}
-          >
-            <IconPlus />
-          </ActionIcon>
-        </div>
-        {mappedPosts}
-      </div>
+      <Container size="600px" m="0">
+        <Box
+          sx={(theme) => ({
+            paddingLeft: theme.spacing.xs,
+            paddingRight: theme.spacing.xs,
+            paddingBottom: 15,
+            paddingTop: 15,
+            borderBottom: `1px solid ${
+              theme.colorScheme === "dark"
+                ? theme.colors.dark[4]
+                : theme.colors.gray[2]
+            }`,
+          })}
+        >
+          <Group align="center" position="apart" m="0" px="lg">
+            <Title order={2}>Home</Title>
+            <ActionIcon
+              variant="white"
+              color="blue"
+              onClick={() => setIsCreatePostOpen(true)}
+            >
+              <IconPlus size={24} />
+            </ActionIcon>
+          </Group>
+        </Box>
+        {feed.loading ? (
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <Loader />
+          </div>
+        ) : (
+          mappedPosts
+        )}
+      </Container>
+      <Outlet />
     </>
   );
 }

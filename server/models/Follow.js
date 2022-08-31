@@ -8,7 +8,7 @@ const FollowSchema = new Mongoose.Schema({
     },
     user: {
         type: Mongoose.Schema.Types.ObjectId,
-        ref: 'Post',
+        ref: 'User',
         required: [true, 'User Id is required'],
     },
 }, { timestamps: true })

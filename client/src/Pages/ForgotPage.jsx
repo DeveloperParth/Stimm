@@ -4,17 +4,69 @@ import {
   Button,
   Card,
   Center,
+  Modal,
   Space,
+  Text,
   TextInput,
   Title,
 } from "@mantine/core";
 import { IconAt } from "@tabler/icons";
-import { Link } from "react-router-dom";
-
+import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { forgotUser } from "../Services/Services";
 
 function ForgotPage() {
+  const navigate = useNavigate();
+  const [emailError, setEmailError] = useState("");
+  const [email, setEmail] = useState("");
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const forgotPasswordValidator = (e) => {
+    e.preventDefault();
+    setEmailError("");
+    if (!email.match(/\S+@\S+\.\S+/)) return setEmailError("Invalid email");
+    setIsConfirmModalOpen(true);
+  };
+  const forgotPasswordHandler = async () => {
+    await forgotUser({ email });
+    navigate("/login");
+  };
   return (
     <>
+      <Modal
+        opened={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        centered
+      >
+        <Text>
+          <b>{email} </b>
+          Are you sure this is your email?
+          <br />
+          An email will be sent on this email address with password reset
+          instrucations and you will be redirected to login page
+        </Text>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: "1rem",
+          }}
+        >
+          <Button
+            variant="outline"
+            color="red"
+            onClick={() => setIsConfirmModalOpen(false)}
+          >
+            No, I'd like to change
+          </Button>
+          <Button
+            variant="outline"
+            color="green"
+            onClick={forgotPasswordHandler}
+          >
+            Yes, send email
+          </Button>
+        </div>
+      </Modal>
       <div className="center-vertical">
         <Center>
           <Card
@@ -24,15 +76,18 @@ function ForgotPage() {
             withBorder
             style={{ width: "350px" }}
           >
-            <form>
+            <form onSubmit={forgotPasswordValidator}>
               <Title order={4} align="center">
-                Login
+                Reset password
               </Title>
               <Space h={15} />
               <TextInput
                 icon={<IconAt size={18} />}
                 placeholder="Email"
                 label="Enter email"
+                onChange={(e) => setEmail(e.target.value)}
+                value={email}
+                error={emailError}
                 description="An email will be sent if account exists with this email address"
                 required
               />
@@ -48,7 +103,7 @@ function ForgotPage() {
               </div>
               <Space h={10} />
               <div style={{ display: "flex", justifyContent: "center" }}>
-                <Button variant="white" size="md">
+                <Button variant="white" size="md" type="submit">
                   Send
                 </Button>
               </div>

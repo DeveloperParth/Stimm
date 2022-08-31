@@ -3,20 +3,52 @@ import API from "./API";
 export function getSinglePost(id) {
     return API.get('/post/' + id)
 }
+export function getPostByTag(tag) {
+    return API.get(`/post/tag/${tag}`)
+}
 export function getFeed(offset) {
     return API.get('/post/feed', { params: { offset } })
 }
 export function getUser(username) {
-    return API.get('/user/' + username)
+    return API.get(`/user/${username}`)
+}
+export function getBookmarks() {
+    return API.get('/bookmarks/')
+}
+export function bookmarkPost(postId) {
+    return API.post(`/post/${postId}/bookmark`)
+}
+export function getUserPosts(id) {
+    return API.get('/user/' + id + '/posts')
+}
+export function getUserComments(id) {
+    return API.get('/user/' + id + '/comments')
+}
+export function getUserLikes(id) {
+    return API.get('/user/' + id + '/likes')
+}
+export function getNotifications() {
+    return API.get('/notifications')
+}
+export function setNotificationsRead() {
+    return API.post('/notifications/read')
 }
 export function followUser(id) {
     return API.post(`/user/${id}/follow`)
+}
+export function unfollowUser(id) {
+    return API.post(`/user/${id}/unfollow`)
 }
 export function likePost(id) {
     return API.post(`/post/${id}/like`)
 }
 export function createPost(data) {
-    return API.post('/post/create', data)
+    return API.post('/post/create', data, {
+        headers: {
+            "Content-type": "multipart/form-data",
+            'Accept': 'multipart/form-data',
+        }
+    })
 }
 export function deletePost(id) {
     return API.delete(`/post/${id}`)
@@ -27,12 +59,23 @@ export function loginUser(data) {
 export function signupUser(data) {
     return API.post('/auth/signup', data)
 }
+export function forgotUser(data) {
+    return API.post(`/auth/forgot`, data)
+}
+export function resetPassworrd(id, token, data) {
+    return API.post(`/auth/forgot/verify/${id}/${token}`, data)
+}
 export function verifyUser(id, token) {
     return API.post(`/auth/verify/${id}/${token}`)
 }
 export function getComments(id) {
-    // return API.get(`/comment/all`)
     return API.get(`/post/${id}/comments`)
+}
+export function getUsername(u) {
+    return API.post(`/auth/username/${u}`)
+}
+export function getEmail(e) {
+    return API.post(`/auth/email/${e}`)
 }
 export function nestComments(commentList) {
     const commentMap = {};

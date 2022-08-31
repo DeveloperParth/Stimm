@@ -12,4 +12,5 @@ const InitiateMongoServer = async () => {
         throw e;
     }
 };
+InitiateMongoServer()
 module.exports = {InitiateMongoServer};

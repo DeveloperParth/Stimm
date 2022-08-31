@@ -1,10 +1,10 @@
 import { Button, Modal, Textarea } from "@mantine/core";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addOwnPost } from "../Redux/Features/feedSlice";
-import { createPost } from "../Services/Services";
+import { addOwnPost } from "../../Redux/Features/feedSlice";
+import { createPost } from "../../Services/Services";
 
-function CreatePost({ opened, setOpened }) {
+function CreateComment({ post, opened, setOpened }) {
   const [postBody, setPostBody] = useState("");
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
@@ -22,7 +22,7 @@ function CreatePost({ opened, setOpened }) {
       <Modal
         opened={opened}
         onClose={() => setOpened(false)}
-        title="Whats on your mind"
+        title="Comment"
       >
         <form onSubmit={createPostHandler}>
           <Textarea
@@ -42,4 +42,4 @@ function CreatePost({ opened, setOpened }) {
   );
 }
 
-export default CreatePost;
+export default CreateComment;

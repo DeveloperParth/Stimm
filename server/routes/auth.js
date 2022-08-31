@@ -3,6 +3,7 @@ const User = require('../models/User')
 const BaseError = require('./../utils/BaseError')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const { sendAccountVerificationMail } = require('../utils/mail')
 
 router.post('/login', async (req, res, next) => {
     try {
@@ -15,7 +16,6 @@ router.post('/login', async (req, res, next) => {
         if (!isSame) throw new BaseError(401, 'Email or password is wrong')
         if (!user.verified) throw new BaseError(401, "User not verified")
         const { password, __v, updatedAt, createdAt, ...restUser } = user._doc
-        console.log(restUser);
         const token = jwt.sign({ ...restUser }, process.env.JWT_SECRET)
         res.status(200).json({ message: 'Logged in', user: { ...restUser, token } })
     } catch (error) {
@@ -40,14 +40,15 @@ router.post('/signup', async (req, res, next) => {
         })
         const savedUser = await user.save()
         const token = jwt.sign({ id: savedUser._id }, process.env.JWT_VERIFY + savedUser.password, { expiresIn: '60m' })
-        const link = `http://localhost:5000/api/auth/${savedUser._id}/${token}`
+        const link = `${process.env.FRONTEND_URL}/verify/${savedUser._id}/${token}`
         console.log(link);
+        sendAccountVerificationMail(user.email, link)
         return res.status(200).json({ message: 'Please verify your account, An email has been sent to your mail' })
     } catch (error) {
         next(error)
     }
 })
-router.get('/verify/:id/:token', async (req, res, next) => {
+router.post('/verify/:id/:token', async (req, res, next) => {
     try {
         const user = await User.findById(req.params.id)
         if (!user) throw new BaseError()
@@ -64,20 +65,20 @@ router.get('/verify/:id/:token', async (req, res, next) => {
 })
 router.post('/forgot', async (req, res, next) => {
     try {
-        const { username } = req.body
-        const user = await User.findOne({ username })
+        const { email } = req.body
+        const user = await User.findOne({ email })
         if (!user) return res.status(200)
         const token = jwt.sign({ id: user._id }, process.env.JWT_VERIFY + user.password, { expiresIn: '60m' })
-        const link = `http://localhost:5000/api/auth/${user._id}/${token}`
+        const link = `http://localhost:3000/forgot/verify/${user._id}/${token}`
         console.log(link);
         return res.status(200).json({ message: 'Please verify your account, An email has been sent to your mail' })
     } catch (error) {
         next(error)
     }
 })
-router.get('/forgot/verify/:id/:token', async (req, res, next) => {
+router.post('/forgot/verify/:id/:token', async (req, res, next) => {
     try {
-        const {password} = req.body
+        const { password } = req.body
         const user = await User.findById(req.params.id)
         if (!user) throw new BaseError()
         const decoded = jwt.verify(req.params.token, process.env.JWT_VERIFY + user.password)
@@ -85,9 +86,29 @@ router.get('/forgot/verify/:id/:token', async (req, res, next) => {
         const hasedPassword = await bcrypt.hash(password, 10)
         user.password = hasedPassword
         const updatedUser = await user.save()
-        const { password:trash, __v, updatedAt, createdAt, ...restUser } = updatedUser._doc
+        const { password: trash, __v, updatedAt, createdAt, ...restUser } = updatedUser._doc
         const token = jwt.sign({ ...restUser }, process.env.JWT_SECRET)
         res.status(200).json({ message: 'Password updated', user: { ...restUser, token } })
+    } catch (error) {
+        next(error)
+    }
+})
+
+router.post('/username/:username', async (req, res, next) => {
+    try {
+        const { username } = req.params
+        const user = await User.find({ username })
+        return res.status(200).json({ taken: user.length })
+    } catch (error) {
+        next(error)
+    }
+})
+
+router.post('/email/:email', async (req, res, next) => {
+    try {
+        const { email } = req.params
+        const user = await User.find({ email })
+        return res.status(200).json({ taken: user.length })
     } catch (error) {
         next(error)
     }

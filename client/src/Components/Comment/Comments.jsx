@@ -2,10 +2,11 @@ import React from "react";
 import Comment from "./Comment";
 
 function Comments({ comments }) {
+  if (typeof comments == "string") return comments;
   const mappedComments = nestComments(comments).map((comment) => {
-    return <Comment comment={comment} key={comment._id}/>;
+    return <Comment comment={comment} key={comment._id} />;
   });
-  return <div>{mappedComments}</div>;
+  return <div className="comments">{mappedComments}</div>;
 }
 function nestComments(commentList) {
   const commentMap = {};

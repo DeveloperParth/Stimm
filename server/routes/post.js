@@ -1,25 +1,19 @@
 const router = require('express').Router()
-const checkUser = require('./../middlewares/checkUser')
+const ObjectId = require('mongoose').Types.ObjectId
+
 const Post = require('../models/Post')
-const BaseError = require('../utils/BaseError')
 const Like = require('../models/Like')
 const Comment = require('../models/Comment')
-const optionalAuth = require('../middlewares/optionalAuth')
 const Follow = require('../models/Follow')
-const ObjectId = require('mongoose').Types.ObjectId;
-const multer = require('multer')
 
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, './uploads')
-    },
-    filename: function (req, file, cb) {
-        cb(null, file.originalname)
-    }
-})
-const upload = multer({ storage })
+const BaseError = require('../utils/BaseError')
+const optionalAuth = require('../middlewares/optionalAuth')
+const checkUser = require('./../middlewares/checkUser')
+const upload = require('./../middlewares/Upload')
+const { sendNotification } = require('./../utils/SendNotification')
 
-router.get('/feed', checkUser, async (req, res, next) => {
+
+router.get('/post/feed', checkUser, async (req, res, next) => {
     const user = res.locals.user
     try {
         const offset = req.query?.offset
@@ -88,9 +82,28 @@ router.get('/feed', checkUser, async (req, res, next) => {
                     as: 'likeFlag',
                 },
             },
+            {
+                $lookup: {
+                    from: 'Bookmarks',
+                    let: { 'post': "$_id" },
+                    "pipeline": [
+                        {
+                            '$match': {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ["$user", ObjectId(res.locals.user._id)] },
+                                        { $eq: ["$post", { $toObjectId: "$$post" }] },
+                                    ]
+                                }
+                            }
+                        }],
+                    as: 'bookmarkFlag',
+                },
+            },
             { $addFields: { likes: { $size: '$likes' } } },
             { $addFields: { comments: { $size: '$comments' } } },
             { $addFields: { likeFlag: { $cond: { if: { $size: '$likeFlag' }, then: true, else: false } } } },
+            { $addFields: { bookmarkFlag: { $cond: { if: { $size: '$bookmarkFlag' }, then: true, else: false } } } },
             { $unwind: '$author' }
         ])
         return res.status(200).json({ posts })
@@ -98,60 +111,18 @@ router.get('/feed', checkUser, async (req, res, next) => {
         next(error)
     }
 })
-router.post('/create', checkUser, upload.array('attachments', 1), async (req, res, next) => {
-    try {
-        const { body } = req.body
-        if (!body) throw new BaseError()
-        const post = new Post({
-            author: res.locals.user._id,
-            body,
-            attachments: req.files
-        })
-        const savedPost = await post.save()
-        return res.status(200).json({ post: savedPost })
-    } catch (error) {
-        next(error)
-    }
-})
-router.delete('/:id', checkUser, async (req, res, next) => {
-    try {
-        const post = await Post.findById(req.params.id)
-        if (!post) throw new BaseError(404, "No post found")
-        if (!post.author.equals(post.author)) throw new BaseError(403, "Unauthorized")
-        post.body = 'This post is deleted'
-        post.deleted = true
-        post.save()
-        return res.status(200).json({ message: "Post deleted" })
-    } catch (error) {
-        next(error)
-    }
-})
-router.get('/:id', optionalAuth, async (req, res, next) => {
-    try {
-        const post = await Post.findById(req.params.id).populate('author', 'name username avatar')
-        const likes = await Like.find({ post }).count()
-        const comments = await Comment.find({ post }).count()
-        const likeFlag = res.locals.user ? await Like.findOne({ post, author: res.locals.user._id }) : false
-        console.log(post);
-        if (!post) throw new BaseError(404, "No post found")
-        return res.status(200).json({ post: { ...post._doc, likes, comments, likeFlag: Boolean(likeFlag) } })
-    } catch (error) {
-        next(error)
-    }
-})
-router.get('/:id/posts', async (req, res, next) => {
+router.get('/post/tag/:tag', optionalAuth, async (req, res, next) => {
     try {
         const posts = await Post.aggregate([
-            { $match: { author: ObjectId(req.params.id) } },
             {
-                $lookup: {
-                    from: 'Likes',
-                    localField: '_id',
-                    foreignField: 'post',
-                    as: 'likes',
-                },
-
+                $match: {
+                    $and: [
+                        { tags: '#' + req.params.tag, },
+                        { createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) } }
+                    ]
+                }
             },
+            { $sort: { createdAt: -1 } },
             {
                 $lookup: {
                     from: 'Users',
@@ -159,7 +130,14 @@ router.get('/:id/posts', async (req, res, next) => {
                     foreignField: '_id',
                     as: 'author',
                 },
-
+            },
+            {
+                $lookup: {
+                    from: 'Likes',
+                    localField: '_id',
+                    foreignField: 'post',
+                    as: 'likes',
+                },
             },
             {
                 $lookup: {
@@ -172,6 +150,24 @@ router.get('/:id/posts', async (req, res, next) => {
             },
             {
                 $lookup: {
+                    from: 'Bookmarks',
+                    let: { 'post': "$_id" },
+                    "pipeline": [
+                        {
+                            '$match': {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ["$user", ObjectId(res.locals.user._id)] },
+                                        { $eq: ["$post", { $toObjectId: "$$post" }] },
+                                    ]
+                                }
+                            }
+                        }],
+                    as: 'bookmarkFlag',
+                },
+            },
+            {
+                $lookup: {
                     from: 'Likes',
                     let: { 'post': "$_id" },
                     "pipeline": [
@@ -179,7 +175,7 @@ router.get('/:id/posts', async (req, res, next) => {
                             '$match': {
                                 $expr: {
                                     $and: [
-                                        { $eq: ["$author", ObjectId(res.locals.user._id)] },
+                                        { $eq: ["$author", ObjectId(res.locals.user?._id)] },
                                         { $eq: ["$post", { $toObjectId: "$$post" }] },
                                     ]
                                 }
@@ -191,17 +187,59 @@ router.get('/:id/posts', async (req, res, next) => {
             { $addFields: { likes: { $size: '$likes' } } },
             { $addFields: { comments: { $size: '$comments' } } },
             { $addFields: { likeFlag: { $cond: { if: { $size: '$likeFlag' }, then: true, else: false } } } },
+            { $addFields: { bookmarkFlag: { $cond: { if: { $size: '$bookmarkFlag' }, then: true, else: false } } } },
             { $unwind: '$author' }
-
-
-
         ])
-        return res.status(200).json({ posts })
+        res.status(200).json({ posts })
     } catch (error) {
         next(error)
     }
 })
-router.post('/:id/like', checkUser, async (req, res, next) => {
+router.post('/post/create', checkUser, upload.array('attachments', 1), async (req, res, next) => {
+    try {
+        const { body } = req.body
+        if (!body) throw new BaseError()
+        const tags = body.match(/#\w+/g)
+        const mentions = body.match(/@\w+/g)
+        const post = new Post({
+            author: res.locals.user._id,
+            body,
+            attachments: req.files,
+            tags
+        })
+        const savedPost = await post.save()
+        return res.status(200).json({ post: savedPost })
+    } catch (error) {
+        next(error)
+    }
+})
+router.delete('/post/:id', checkUser, async (req, res, next) => {
+    try {
+        const post = await Post.findById(req.params.id)
+        if (!post) throw new BaseError(404, "No post found")
+        if (!post.author.equals(post.author)) throw new BaseError(403, "Unauthorized")
+        post.body = 'This post is deleted'
+        post.deleted = true
+        post.save()
+        return res.status(200).json({ message: "Post deleted" })
+    } catch (error) {
+        next(error)
+    }
+})
+router.get('/post/:id', optionalAuth, async (req, res, next) => {
+    try {
+        const post = await Post.findById(req.params.id).populate('author', 'name username avatar')
+        const likes = await Like.find({ post }).count()
+        const comments = await Comment.find({ post }).count()
+        const likeFlag = res.locals.user ? await Like.findOne({ post, author: res.locals.user._id }) : false
+        console.log(post);
+        if (!post) throw new BaseError(404, "No post found")
+        return res.status(200).json({ post: { ...post._doc, likes, comments, likeFlag: Boolean(likeFlag) } })
+    } catch (error) {
+        next(error)
+    }
+})
+router.post('/post/:id/like', checkUser, async (req, res, next) => {
     try {
         const post = await Post.findById(req.params.id)
         if (!post) throw new BaseError(404, "No post found")
@@ -215,40 +253,24 @@ router.post('/:id/like', checkUser, async (req, res, next) => {
                 post
             })
             const like = await newLike.save()
+            sendNotification(post.author, 'Someone liked your post')
             return res.status(200).json({ message: 'Liked', like })
         }
     } catch (error) {
         next(error)
     }
 })
-router.post('/:id/comment', checkUser, async (req, res, next) => {
-    try {
-        const { body, parent } = req.body
-        const post = await Post.findById(req.params.id)
-        const newComment = new Comment({
-            author: res.locals.user._id,
-            post: post._id,
-            body,
-            parent
-        })
-        const comment = await newComment.save()
-        return res.status(200).json({ comment })
-    } catch (error) {
-        next(error)
-    }
-})
-router.get('/:id/comments', async (req, res, next) => {
+router.get('/post/:id/likes', async (req, res, next) => {
     try {
         const post = await Post.findById(req.params.id)
         if (!post) throw new BaseError(404, 'No post found')
-        const comments = await Comment.find().sort({ parent: 1 })
-        console.log(comments);
-        return res.status(200).json({ comments })
+        const likes = await Like.find({ post }).sort({ parent: 1 })
+        return res.status(200).json({ likes })
     } catch (error) {
         next(error)
     }
 })
-router.get('/clean', async (req, res) => {
+router.get('/post/clean/all', async (req, res) => {
     await Post.deleteMany({ deleted: true })
     res.send('ok')
 })

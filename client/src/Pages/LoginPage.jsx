@@ -10,19 +10,31 @@ import {
   Space,
   TextInput,
   Title,
-  Notification,
 } from "@mantine/core";
 import { IconAt } from "@tabler/icons";
 import { IconLock } from "@tabler/icons";
 import { Link } from "react-router-dom";
+import { useValidatedState } from "@mantine/hooks";
 
 function LoginPage() {
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
+  const [{ valid: validEmail }, setEmail] = useValidatedState(
+    "",
+    (v) => v.match(/\S+@\S+\.\S+/),
+    true
+  );
+
+  const formValidator = (body) => {
+    setEmail(body.email);
+    return validEmail;
+  };
+
   const loginHandler = (e) => {
     e.preventDefault();
     const formdata = new FormData(e.target);
     const body = Object.fromEntries(formdata.entries());
+    if (!formValidator(body)) return;
     dispatch(login(body));
   };
   return (
@@ -46,6 +58,7 @@ function LoginPage() {
                 placeholder="Email"
                 label="Enter email"
                 name="email"
+                error={!validEmail && "Invalid Email"}
                 required
               />
               <Space h={5} />

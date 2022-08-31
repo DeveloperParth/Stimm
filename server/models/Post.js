@@ -14,6 +14,7 @@ const PostSchema = new Mongoose.Schema({
         _id: false,
         path: String
     }],
+    tags: [String],
     deleted: {
         type: Boolean
     }
