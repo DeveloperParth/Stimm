@@ -10,6 +10,7 @@ const upload = require('./../middlewares/Upload')
 const ObjectId = require('mongoose').Types.ObjectId
 const Comment = require('../models/Comment')
 const Like = require('../models/Like')
+const { sendNotification } = require('../utils/SendNotification')
 
 
 
@@ -36,18 +37,16 @@ router.patch('/profile', checkUser, upload.single('avatar'), async (req, res, ne
         next(error)
     }
 })
+router.get('/all', async (req, res, next) => {
+    try {
+        const users = await User.find()
+        return res.json({ users })
+    } catch (error) {
+        next(error)
+    }
+})
 router.get('/:username', optionalAuth, async (req, res, next) => {
     try {
-        // const user = await User.findOne({ username: req.params.username })
-        // const followers = await Follow.find({ user }).count()
-        // const followings = await Follow.find({ follower: user }).count()
-        // const posts = await Post.find({
-        //     author: user,
-        //     deleted: {
-        //         $exists: false
-        //     }
-        // }).count()
-        // if (!user) throw new BaseError(404, 'User not found')
         const user = await User.aggregate([
             { $match: { username: req.params.username } },
             {
@@ -122,6 +121,7 @@ router.post('/:id/follow', checkUser, async (req, res, next) => {
             user
         })
         await newFollow.save()
+        sendNotification(user._id, `${res.locals.user.username} started following you`)
         return res.status(200).json({ message: 'Followed' })
     } catch (error) {
         next(error)
@@ -149,12 +149,8 @@ router.get('/:id/posts', optionalAuth, async (req, res, next) => {
     try {
         const posts = await Post.aggregate([
             {
-                $match: {
-                    $and: [
-                        { author: ObjectId(req.params?.id) },
-                        { deleted: { $exists: false } }
-                    ]
-                }
+                $match: { author: ObjectId(req.params.id) },
+
             },
             {
                 $lookup: {
@@ -249,13 +245,14 @@ router.get('/:id/likes', optionalAuth, async (req, res, next) => {
         next(error)
     }
 })
-router.get('/all', checkUser, async (req, res, next) => {
+router.get('/:id/followers', optionalAuth, async (req, res, next) => {
     try {
-        const users = await User.find({})
-        return res.json({ users })
+        const followers = await Follow.find({ user: req.params.id }).populate('follower', 'name username avatar')
+        return res.status(200).json({ followers })
     } catch (error) {
         next(error)
     }
 })
+
 
 module.exports = router

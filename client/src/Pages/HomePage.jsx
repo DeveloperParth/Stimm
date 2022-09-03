@@ -6,16 +6,8 @@ import { fetchFeed } from "../Redux/Features/feedSlice";
 import Post from "./../Components/Post/Post";
 import CreatePost from "../Components/Post/CreatePost";
 
-import {
-  ActionIcon,
-  Box,
-  Container,
-  Group,
-  Loader,
-  Title,
-} from "@mantine/core";
-import { IconPlus } from "@tabler/icons";
-import { Outlet } from "react-router-dom";
+import { Container, Loader } from "@mantine/core";
+import Header from "../Components/Navigations/Header";
 
 function HomePage() {
   const dispatch = useDispatch();
@@ -23,8 +15,9 @@ function HomePage() {
   const feed = useSelector((state) => state.feed);
   const auth = useSelector((state) => state.auth);
   useEffect(() => {
-    dispatch(fetchFeed());
-  }, [dispatch]);
+    !feed.posts.length && dispatch(fetchFeed());
+    // eslint-disable-next-line
+  }, []);
   const mappedPosts = feed.posts.map((post, i) => {
     return (
       <Post
@@ -37,31 +30,8 @@ function HomePage() {
   return (
     <>
       <CreatePost opened={isCreatePostOpen} setOpened={setIsCreatePostOpen} />
-      <Container size="600px" m="0">
-        <Box
-          sx={(theme) => ({
-            paddingLeft: theme.spacing.xs,
-            paddingRight: theme.spacing.xs,
-            paddingBottom: 15,
-            paddingTop: 15,
-            borderBottom: `1px solid ${
-              theme.colorScheme === "dark"
-                ? theme.colors.dark[4]
-                : theme.colors.gray[2]
-            }`,
-          })}
-        >
-          <Group align="center" position="apart" m="0" px="lg">
-            <Title order={2}>Home</Title>
-            <ActionIcon
-              variant="white"
-              color="blue"
-              onClick={() => setIsCreatePostOpen(true)}
-            >
-              <IconPlus size={24} />
-            </ActionIcon>
-          </Group>
-        </Box>
+      <Container size="600px">
+        <Header title="Home" />
         {feed.loading ? (
           <div style={{ display: "flex", justifyContent: "center" }}>
             <Loader />
@@ -70,7 +40,6 @@ function HomePage() {
           mappedPosts
         )}
       </Container>
-      <Outlet />
     </>
   );
 }

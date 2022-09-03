@@ -18,7 +18,7 @@ function HoverUserCard({ username }) {
   return (
     <>
       <Group>
-        <Avatar src={"http://localhost:5000/uploads/" + user.avatar} />
+        <Avatar src={process.env.REACT_APP_UPLOADS_PATH + user.avatar} />
         <div>
           <Group spacing={5}>
             <Text>{user.name}</Text>

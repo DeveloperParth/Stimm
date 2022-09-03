@@ -8,7 +8,6 @@ const { sendAccountVerificationMail } = require('../utils/mail')
 router.post('/login', async (req, res, next) => {
     try {
         const { email, password: uPassword } = req.body
-        console.log(uPassword);
         if (!email && !uPassword) throw new BaseError(400, 'Email and password are required')
         const user = await User.findOne({ $or: [{ email }, { 'username': email }] })
         if (!user) throw new BaseError(401, 'Email or password is wrong')

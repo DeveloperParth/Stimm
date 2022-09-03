@@ -116,10 +116,21 @@ router.get('/post/tag/:tag', optionalAuth, async (req, res, next) => {
         const posts = await Post.aggregate([
             {
                 $match: {
-                    $and: [
-                        { tags: '#' + req.params.tag, },
-                        { createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) } }
-                    ]
+                    $and:
+                        [
+                            {
+                                deleted: {
+                                    $exists: false
+                                }
+                            },
+                            {
+                                $and: [
+
+                                    { tags: '#' + req.params.tag, },
+                                    { createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) } }
+                                ]
+                            }
+                        ]
                 }
             },
             { $sort: { createdAt: -1 } },
@@ -195,6 +206,104 @@ router.get('/post/tag/:tag', optionalAuth, async (req, res, next) => {
         next(error)
     }
 })
+router.get('/tags', async (req, res, next) => {
+    try {
+        const tags = await Post.aggregate([
+            {
+                $unwind: "$tags"
+            },
+            {
+                $group: {
+                    _id: "$tags",
+                    postsCount: { $sum: 1 }
+                }
+            },
+            { $addFields: { tag: "$_id" } }
+        ])
+        res.status(200).json({ tags })
+    } catch (error) {
+        next(error)
+    }
+})
+router.get('/post/tranding', optionalAuth, async (req, res, next) => {
+    try {
+        const posts = await Post.aggregate([
+            {
+                $match: { createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) } }
+            },
+            {
+                $lookup: {
+                    from: 'Users',
+                    localField: 'author',
+                    foreignField: '_id',
+                    as: 'author',
+                },
+            },
+            {
+                $lookup: {
+                    from: 'Likes',
+                    localField: '_id',
+                    foreignField: 'post',
+                    as: 'likes',
+                },
+            },
+            {
+                $lookup: {
+                    from: 'Comments',
+                    localField: '_id',
+                    foreignField: 'post',
+                    as: 'comments',
+                },
+
+            },
+            {
+                $lookup: {
+                    from: 'Bookmarks',
+                    let: { 'post': "$_id" },
+                    "pipeline": [
+                        {
+                            '$match': {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ["$user", ObjectId(res.locals.user?._id)] },
+                                        { $eq: ["$post", { $toObjectId: "$$post" }] },
+                                    ]
+                                }
+                            }
+                        }],
+                    as: 'bookmarkFlag',
+                },
+            },
+            {
+                $lookup: {
+                    from: 'Likes',
+                    let: { 'post': "$_id" },
+                    "pipeline": [
+                        {
+                            '$match': {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ["$author", ObjectId(res.locals.user?._id)] },
+                                        { $eq: ["$post", { $toObjectId: "$$post" }] },
+                                    ]
+                                }
+                            }
+                        }],
+                    as: 'likeFlag',
+                },
+            },
+            { $addFields: { likes: { $size: '$likes' } } },
+            { $addFields: { comments: { $size: '$comments' } } },
+            { $addFields: { likeFlag: { $cond: { if: { $size: '$likeFlag' }, then: true, else: false } } } },
+            { $addFields: { bookmarkFlag: { $cond: { if: { $size: '$bookmarkFlag' }, then: true, else: false } } } },
+            { $unwind: '$author' },
+            { $sort: { likes: -1 } },
+        ])
+        res.status(200).json({ posts })
+    } catch (error) {
+        next(error)
+    }
+})
 router.post('/post/create', checkUser, upload.array('attachments', 1), async (req, res, next) => {
     try {
         const { body } = req.body
@@ -218,9 +327,7 @@ router.delete('/post/:id', checkUser, async (req, res, next) => {
         const post = await Post.findById(req.params.id)
         if (!post) throw new BaseError(404, "No post found")
         if (!post.author.equals(post.author)) throw new BaseError(403, "Unauthorized")
-        post.body = 'This post is deleted'
-        post.deleted = true
-        post.save()
+        await Post.findByIdAndDelete(post._id)
         return res.status(200).json({ message: "Post deleted" })
     } catch (error) {
         next(error)
@@ -232,7 +339,6 @@ router.get('/post/:id', optionalAuth, async (req, res, next) => {
         const likes = await Like.find({ post }).count()
         const comments = await Comment.find({ post }).count()
         const likeFlag = res.locals.user ? await Like.findOne({ post, author: res.locals.user._id }) : false
-        console.log(post);
         if (!post) throw new BaseError(404, "No post found")
         return res.status(200).json({ post: { ...post._doc, likes, comments, likeFlag: Boolean(likeFlag) } })
     } catch (error) {
@@ -253,7 +359,9 @@ router.post('/post/:id/like', checkUser, async (req, res, next) => {
                 post
             })
             const like = await newLike.save()
-            sendNotification(post.author, 'Someone liked your post')
+            if (like.author != post.author) {
+                sendNotification(post.author, `${res.locals.user.username} liked your post`)
+            }
             return res.status(200).json({ message: 'Liked', like })
         }
     } catch (error) {
@@ -269,10 +377,6 @@ router.get('/post/:id/likes', async (req, res, next) => {
     } catch (error) {
         next(error)
     }
-})
-router.get('/post/clean/all', async (req, res) => {
-    await Post.deleteMany({ deleted: true })
-    res.send('ok')
 })
 
 module.exports = router

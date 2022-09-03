@@ -10,7 +10,7 @@ function WithNav({ children }) {
   const theme = useMantineTheme();
   const [width, setWidth] = useState(window.innerWidth);
   let isMobile = theme.breakpoints.xs > width;
-  let showSideBar = width > theme.breakpoints.md;
+  let showSideBar = width > 900;
   const updateDimensions = () => {
     setWidth(window.innerWidth);
   };

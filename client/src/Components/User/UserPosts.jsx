@@ -2,21 +2,22 @@ import { Grid } from "@mantine/core";
 import React, { useEffect, useState } from "react";
 import { getUserPosts } from "../../Services/Services";
 
-import Post from '../Post/Post'
- 
+import Post from "../Post/Post";
+
 function UserPosts({ user }) {
-  const [posts, setPosts] = useState();
+  const [posts, setPosts] = useState(null);
 
   const fetchUserPosts = async () => {
     try {
-      const response = await getUserPosts(user._id);
-      setPosts(response.data.posts);
+      const { data } = await getUserPosts(user._id);
+      setPosts(data.posts);
       console.log(posts);
     } catch (error) {
       alert(error.message);
     }
   };
   useEffect(() => {
+    console.log('eff');
     fetchUserPosts();
     // eslint-disable-next-line
   }, []);

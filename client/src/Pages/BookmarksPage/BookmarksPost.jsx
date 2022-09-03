@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { useDispatch } from "react-redux";
-import { removePost, setPostLike } from "../../Redux/Features/feedSlice";
+import { removePost } from "../../Redux/Features/feedSlice";
 import { bookmarkPost, deletePost, likePost } from "../../Services/Services";
 import CreateComment from "../../Components/Comment/CreateComment";
 import HoverUserCard from "../../Components/Post/HoverUserCard";
@@ -69,7 +69,7 @@ function Post({ post, index, setBookmarks }) {
         <div className="post" onClick={postClickHandler}>
           <div className="post__avatar">
             <Avatar
-              src={"http://localhost:5000/uploads/" + post.author.avatar}
+              src={process.env.REACT_APP_UPLOADS_PATH + post.author.avatar}
               radius="xl"
             />
           </div>

@@ -16,7 +16,7 @@ function UserTabs({ user }) {
         value={tabValue}
         onTabChange={(value) => navigate(`/u/${username}/${value}`)}
       >
-        <Tabs.List>
+        <Tabs.List grow>
           <Tabs.Tab value="posts">Posts</Tabs.Tab>
           <Tabs.Tab value="replies">Replies</Tabs.Tab>
           <Tabs.Tab value="likes">Likes</Tabs.Tab>

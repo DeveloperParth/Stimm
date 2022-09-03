@@ -17,7 +17,6 @@ module.exports = (req, res, next) => {
             throw BaseError(401, "Invalid")
         }
     } catch (error) {
-        console.log('error');
         if (error instanceof jwt.TokenExpiredError) next(new BaseError(401, "Session expired"))
         next(error)
     }

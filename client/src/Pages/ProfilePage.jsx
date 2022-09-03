@@ -32,7 +32,7 @@ function ProfilePage() {
       <Container size="600px" m="0">
         <section style={{ width: "600px" }}>
           <Avatar
-            src={"http://localhost:5000/uploads/" + user.avatar}
+            src={process.env.REACT_APP_UPLOADS_PATH + user.avatar}
             size="xl"
             radius="50%"
           />

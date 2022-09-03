@@ -22,7 +22,7 @@ function PostModal() {
       setPost(response.data.post);
       console.log(response);
     } catch (error) {
-      alert(error);
+      alert(JSON.stringify(error));
     }
   };
   const fetchComments = async (id) => {
@@ -63,7 +63,7 @@ function PostModal() {
               <div className="post">
                 <div className="post__avatar">
                   <Avatar
-                    src={"http://localhost:5000/uploads/" + post.author.avatar}
+                    src={process.env.REACT_APP_UPLOADS_PATH + post.author.avatar}
                     radius="xl"
                   />
                 </div>

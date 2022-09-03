@@ -1,4 +1,4 @@
-import React, { useState, } from "react";
+import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { useDispatch } from "react-redux";
@@ -7,7 +7,12 @@ import {
   setPostBookmark,
   setPostLike,
 } from "../../Redux/Features/feedSlice";
-import { bookmarkPost, deletePost, likePost } from "../../Services/Services";
+import {
+  bookmarkPost,
+  deletePost,
+  likePost,
+  sortDate,
+} from "../../Services/Services";
 
 import CreateComment from "./../Comment/CreateComment";
 import HoverUserCard from "./HoverUserCard";
@@ -19,8 +24,7 @@ import {
   Mark,
   Anchor,
   ActionIcon,
-  Button,
-  UnstyledButton,
+  Text,
   Group,
 } from "@mantine/core";
 import { useHover } from "@mantine/hooks";
@@ -54,9 +58,7 @@ function Post({ post, index }) {
     setCreateCommentOpened(true);
   };
   const postClickHandler = (e) => {
-    if (e.target.tagName === "DIV") {
-      navigate(`/p/${post._id}`, { state: { location } });
-    }
+    navigate(`/p/${post._id}`, { state: { location } });
   };
   const bookmarkPostHandler = async () => {
     await bookmarkPost(post._id);
@@ -79,10 +81,11 @@ function Post({ post, index }) {
           }`,
         })}
       >
-        <div className="post" onClick={postClickHandler}>
+        <div className="post">
+          <Anchor onClick={postClickHandler} className="redirect"></Anchor>
           <div className="post__avatar">
             <Avatar
-              src={"http://localhost:5000/uploads/" + post.author.avatar}
+              src={process.env.REACT_APP_UPLOADS_PATH + post.author.avatar}
               radius="xl"
               sx={{ zIndex: -1 }}
             />
@@ -90,34 +93,43 @@ function Post({ post, index }) {
           <div className="post__body">
             <div className="post__header">
               <div className="post__headerText">
-                <h3 ref={ref}>
-                  {post.author.name}
-                  <Anchor
-                    component={Link}
-                    to={`/u/${post.author.username}/posts`}
-                  >
-                    <span className="post__headerSpecial" ref={ref}>
-                      @{post.author.username}
-                    </span>
-                  </Anchor>
-                  {hovered ? (
-                    <Box
-                      ref={ref}
-                      sx={(theme) => ({
-                        backgroundColor:
-                          theme.colorScheme === "dark"
-                            ? theme.colors.dark[6]
-                            : theme.colors.gray[1],
-                        padding: theme.spacing.xl,
-                        borderRadius: theme.radius.md,
-                        position: "absolute",
-                        zIndex: "10000",
-                      })}
+                <Group spacing="xs" align="baseline">
+                  <Group spacing={3} ref={ref}>
+                    <Text weight={500} style={{ cursor: "pointer" }}>
+                      {post.author.name}
+                    </Text>
+                    <Anchor
+                      component={Link}
+                      to={`/u/${post.author.username}/posts`}
                     >
-                      <HoverUserCard username={post.author.username} />
-                    </Box>
-                  ) : null}
-                </h3>
+                      <span className="post__headerSpecial">
+                        @{post.author.username}
+                      </span>
+                    </Anchor>
+                    {hovered ? (
+                      <Box
+                        ref={ref}
+                        sx={(theme) => ({
+                          backgroundColor:
+                            theme.colorScheme === "dark"
+                              ? theme.colors.dark[6]
+                              : theme.colors.gray[1],
+                          padding: theme.spacing.xl,
+                          borderRadius: theme.radius.md,
+                          position: "absolute",
+                          top: "2rem",
+                          zIndex: "10000",
+                        })}
+                      >
+                        <HoverUserCard username={post.author.username} />
+                      </Box>
+                    ) : null}
+                  </Group>
+                  &bull;
+                  <Text color="dimmed" size="xs">
+                    {sortDate(Date.parse(post.createdAt))}
+                  </Text>
+                </Group>
                 <div style={{ float: "right" }}>
                   {post.isOwner ? (
                     <ActionIcon onClick={deletePostHandler}>
@@ -129,6 +141,8 @@ function Post({ post, index }) {
                   </ActionIcon>
                 </div>
               </div>
+            </div>
+            <div className="post__content">
               <div className="post__headerDescription">
                 <p>
                   {post.body.split(" ").map((w) => {
@@ -156,16 +170,23 @@ function Post({ post, index }) {
                 </p>
               </div>
               {post.attachments?.length ? (
-                <div className="attachments">
+                <Box
+                  sx={{
+                    overflow: "hidden",
+                    borderRadius: ".5rem",
+                    display: "flex",
+                    gap: "2px",
+                  }}
+                >
                   {post.attachments.map((a) => (
                     <Image
-                      src={"http://localhost:5000/" + a.path}
-                      radius="md"
+                      src={process.env.REACT_APP_UPLOADS_PATH + a.path}
+                      radius="0"
                       withPlaceholder
                       key={a}
                     />
                   ))}
-                </div>
+                </Box>
               ) : null}
             </div>
             <div className="post__footer">

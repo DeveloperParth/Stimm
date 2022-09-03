@@ -4,7 +4,7 @@
 
 }
 :root {
-  --side-nav-width: 275px
+  --side-nav-width: 18%
 }
 html,
 body {
@@ -27,11 +27,13 @@ body {
 .main-container {
   display: flex !important;
   justify-content: center;
+  /* overflow-x: hidden; */
 }
 
 .bar {
   width: var(--side-nav-width);
   position: relative;
+  overflow: hidden;
 }
 
 .aside {
@@ -88,6 +90,8 @@ body {
   align-items: flex-start;
   cursor: pointer;
   width: 100%;
+  position: relative;
+  padding: 1em 0;
 }
 
 .post a {
@@ -96,7 +100,6 @@ body {
 
 .post__body {
   flex: 1;
-  padding: 10px;
 }
 
 .post__body>img {
@@ -109,24 +112,6 @@ body {
   margin-top: 20px;
 }
 
-/* .post__footer button {
-  background: transparent;
-  outline: none;
-  border: none;
-  cursor: pointer;
-  padding: .25rem .5rem;
-  border-radius: 5px;
-  display: flex;
-  align-items: center;
-  gap: .3rem;
-  color: white;
-} */
-
-/* .post__footer button:hover {
-  background-color: rgba(255, 0, 0, 0.3);
-  color: rgba(255, 0, 0, 0.7);
-
-} */
 
 .post__headerDescription {
   margin-bottom: 10px;
@@ -153,7 +138,7 @@ body {
 }
 
 .post__avatar {
-  padding: 20px;
+  margin-right: 1rem;
 }
 
 /* login */
@@ -169,12 +154,20 @@ body {
   width: 30px;
 } */
 .bottom-nav {
-  width: 100%;
+  width: 100vw;
   position: fixed;
   bottom: 0;
   height: 60px;
   z-index: 1000;
-  background-color: beige;
+  background-color: beige !important;
+  left: 0;
+  right: 0;
+}
+.top-nav {
+  width: 100%;
+  position: fixed;
+  top: 0;
+  z-index: 1000;
 }
 
 .aside {
@@ -184,12 +177,28 @@ body {
 .comment-border-link {
   display: block;
   position: absolute;
-  top: 50px;
+  /* top: 50px; */
   left: 0;
   width: 12px;
-  height: calc(100% - 50px);
+  height: calc(100% - 0px);
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
   background-color: rgba(0, 0, 0, 0.1);
   background-clip: padding-box;
+}
+
+.redirect{
+  z-index: 95;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+.post .post__headerText > *{
+  z-index: 100;
+}
+button{
+  z-index: 99;
+}
+.brand{
+  color: white;
 }

@@ -23,10 +23,11 @@ function BookmarksPage() {
         setBookmarks={setBookmarks}
       />
     ));
-  if (!bookmarks) return <Loader />;
   return (
-    <Container size="600px" m="0" p="">
-      {bookmarks.length ? mappedBookmarks : "No saved bookmarks"}
+    <Container size="600px" m="0">
+      {/* <Header title="b"/> */}
+      {!bookmarks && <Loader />}
+      {bookmarks?.length ? mappedBookmarks : "No saved bookmarks"}
     </Container>
   );
 }

@@ -7,7 +7,6 @@ const checkUser = require('./../middlewares/checkUser')
 router.get('/notifications', checkUser, async (req, res, next) => {
     try {
         const notifications = await Notification.find({ owner: res.locals.user?._id }).sort({ createdAt: -1 })
-        console.log(notifications);
         return res.status(200).json({ notifications })
     } catch (error) {
         next(error)

@@ -2,11 +2,13 @@ import { Anchor, Aside, TextInput } from "@mantine/core";
 import { IconSearch } from "@tabler/icons";
 import React from "react";
 import { Link } from "react-router-dom";
+import useStyles from "../../styles";
 
 function SideBar() {
+  const { classes } = useStyles();
   return (
     <>
-      <div className={"side-nav bar"}>
+      <div className={`side-nav bar ${classes.sidebar} ${classes.bar}`}>
         <div className="header-container">
           <Aside withBorder px="xs">
             <div className="search">

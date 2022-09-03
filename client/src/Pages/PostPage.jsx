@@ -1,18 +1,15 @@
-import { Container } from "@mantine/core";
+import { Center, Container, Loader } from "@mantine/core";
 import React, { useState } from "react";
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Comments from "../Components/Comment/Comments";
 import { getSinglePost, likePost, getComments } from "./../Services/Services";
 
-import { Link, useLocation, useNavigate } from "react-router-dom";
-
-import { useDispatch } from "react-redux";
-import { removePost, setPostLike } from "../Redux/Features/feedSlice";
+import { Link } from "react-router-dom";
 
 import CreateComment from "./../Components/Comment/CreateComment";
 
-import { Avatar, Image, Box, Mark, Anchor, ActionIcon } from "@mantine/core";
+import { Avatar, Image, Mark, Anchor, ActionIcon } from "@mantine/core";
 import {
   IconHeart,
   IconMessageCircle,
@@ -20,17 +17,20 @@ import {
   IconTrash,
 } from "@tabler/icons";
 import { useRef } from "react";
+import PostButton from "../Components/Post/PostButton";
+import Header from "../Components/Navigations/Header";
 
-function Post() {
+function PostPage() {
   const ref = useRef(null);
   const { id } = useParams();
-  const [post, setPost] = useState();
+  const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
+  const [createCommentOpened, setCreateCommentOpened] = useState(false);
   const [isPostLiked, setIsPostLiked] = useState(post?.likeFlag);
   const fetchPost = async () => {
     try {
-      const response = await getSinglePost(id);
-      setPost(response.data.post);
+      const { data } = await getSinglePost(id);
+      setPost(data.post);
     } catch (error) {}
   };
   const fetchComments = async () => {
@@ -41,105 +41,118 @@ function Post() {
       console.log(error);
     }
   };
-  const likeHandler = async (e) => {
+  const likePostHandler = async (e) => {
     await likePost(post._id);
     setIsPostLiked(!isPostLiked);
     post.likes = isPostLiked ? post.likes - 1 : post.likes + 1;
   };
+  const createCommentHandler = () => {};
   useEffect(() => {
     fetchPost();
     fetchComments(id);
     // eslint-disable-next-line
   }, []);
 
-  if (!post) return <>Loading....</>;
   return (
     <>
-      <Container size="600px" m={0} className="feed">
-        <div className="post" style={{width: "600px"}}>
-          <div className="post__avatar">
-            <Avatar
-              src={"http://localhost:5000/uploads/" + post.author.avatar}
-              radius="xl"
-            />
-          </div>
-          <div className="post__body">
-            <div className="post__header">
-              <div className="post__headerText">
-                <h3 ref={ref}>
-                  {post.author.name}
-                  <Link to={`/u/${post.author.username}/posts`} ref={ref}>
-                    <span className="post__headerSpecial" ref={ref}>
-                      @{post.author.username}
-                    </span>
-                  </Link>
-                </h3>
-                {post.isOwner ? (
-                  <ActionIcon
-                    style={{ float: "right" }}
-                  >
-                    <IconTrash size={18} />
-                  </ActionIcon>
+      <CreateComment
+        opened={createCommentOpened}
+        setOpened={setCreateCommentOpened}
+      />
+      <Container size="600px">
+        <Header title={"post"} showGoBackButton />
+        {!post ? (
+          <Center>
+            <Loader />
+          </Center>
+        ) : (
+          <div className="post">
+            <div className="post__avatar">
+              <Avatar
+                src={process.env.REACT_APP_UPLOADS_PATH + post.author.avatar}
+                radius="xl"
+              />
+            </div>
+            <div className="post__body">
+              <div className="post__header">
+                <div className="post__headerText">
+                  <h3 ref={ref}>
+                    {post.author.name}
+                    <Link to={`/u/${post.author.username}/posts`} ref={ref}>
+                      <span className="post__headerSpecial" ref={ref}>
+                        @{post.author.username}
+                      </span>
+                    </Link>
+                  </h3>
+                  {post.isOwner ? (
+                    <ActionIcon style={{ float: "right" }}>
+                      <IconTrash size={18} />
+                    </ActionIcon>
+                  ) : null}
+                </div>
+                <div className="post__headerDescription">
+                  <p>
+                    {post.body.split(" ").map((w) => {
+                      // console.log(w);
+                      if (w.startsWith("#")) {
+                        return (
+                          <Link to={`/explore/`} key={w}>
+                            <Mark> {w} </Mark>
+                          </Link>
+                        );
+                      }
+                      if (w.startsWith("@")) {
+                        w = w.replace("@", "");
+                        return (
+                          <Anchor key={w} component={Link} to={`/u/${w}/posts`}>
+                            {w}
+                          </Anchor>
+                        );
+                      }
+                      return <> {w} </>;
+                    })}
+                  </p>
+                </div>
+                {post.attachments?.length ? (
+                  <div className="attachments">
+                    {post.attachments.map((a) => (
+                      <Image
+                        src={"http://localhost:5000/" + a.path}
+                        radius="md"
+                        withPlaceholder
+                        key={a}
+                      />
+                    ))}
+                  </div>
                 ) : null}
               </div>
-              <div className="post__headerDescription">
-                <p>
-                  {post.body.split(" ").map((w) => {
-                    // console.log(w);
-                    if (w.startsWith("#")) {
-                      return (
-                        <Link to={`/explore/`} key={w}>
-                          <Mark> {w} </Mark>
-                        </Link>
-                      );
-                    }
-                    if (w.startsWith("@")) {
-                      w = w.replace("@", "");
-                      return (
-                        <Anchor key={w} component={Link} to={`/u/${w}/posts`}>
-                          {w}
-                        </Anchor>
-                      );
-                    }
-                    return <> {w} </>;
-                  })}
-                </p>
-              </div>
-              {post.attachments?.length ? (
-                <div className="attachments">
-                  {post.attachments.map((a) => (
-                    <Image
-                      src={"http://localhost:5000/" + a.path}
-                      radius="md"
-                      withPlaceholder
-                      key={a}
-                    />
-                  ))}
-                </div>
-              ) : null}
-            </div>
-            <div className="post__footer">
-              <button>
-                <IconMessageCircle size={20} />
-                <span>{post.comments}</span>
-              </button>
-              <button>
-                <IconRepeat size={20} />
-                <span>{post.comments}</span>
-              </button>
+              <div className="post__footer">
+                <PostButton
+                  color="blue"
+                  icon={<IconMessageCircle size={20} />}
+                  text={post.comments}
+                  onClick={createCommentHandler}
+                />
 
-              <button
-                className={post.likeFlag ? "liked" : ""}
-              >
-                <IconHeart size={20} />
-                <span>{post.likes}</span>
-              </button>
+                <PostButton
+                  color="green"
+                  icon={<IconRepeat size={20} />}
+                  text="20"
+                />
+                <PostButton
+                  color="pink"
+                  icon={<IconHeart size={20} />}
+                  text={post.likes}
+                  active={post.likeFlag}
+                  onClick={likePostHandler}
+                />
+              </div>
             </div>
           </div>
-        </div>
+        )}
         {comments.length && <Comments comments={comments} />}
       </Container>
     </>
   );
 }
-export default Post;
+export default PostPage;

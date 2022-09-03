@@ -9,6 +9,7 @@ function UserLikes({ user }) {
   const fetchUserLikes = async () => {
     try {
       const { data } = await getUserLikes(user._id);
+      console.log(data);
       setLikes(data.likes);
     } catch (error) {
       alert(error.message);

@@ -1,10 +1,10 @@
 import axios from 'axios'
-
-const token = localStorage.getItem('token')
+import { showNotification } from '@mantine/notifications';
+import { IconX } from '@tabler/icons';
 
 
 const client = axios.create({
-    baseURL: 'http://localhost:5000/api',
+    baseURL: process.env.REACT_APP_BACKEND_URL,
     headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
@@ -27,9 +27,16 @@ client.interceptors.response.use(
             // window.location = '/login'
         }
         if (error.response.data) {
-            console.log(error.response.data);
+            showNotification({
+                title: error.response.data.message,
+                icon: <IconX />,
+            });
             return Promise.reject(error.response.data);
         }
+        showNotification({
+            title: JSON.stringify(error),
+            icon: <IconX />,
+        });
         return Promise.reject(error);
     }
 );

@@ -6,6 +6,12 @@ export function getSinglePost(id) {
 export function getPostByTag(tag) {
     return API.get(`/post/tag/${tag}`)
 }
+export function getTags() {
+    return API.get('/tags')
+}
+export function getTrandingPosts() {
+    return API.get('/post/tranding')
+}
 export function getFeed(offset) {
     return API.get('/post/feed', { params: { offset } })
 }
@@ -14,6 +20,12 @@ export function getUser(username) {
 }
 export function getBookmarks() {
     return API.get('/bookmarks/')
+}
+export function getFollowers(id) {
+    return API.get(`/user/${id}/followers`)
+}
+export function getFollowing(id) {
+    return API.get(`/user/${id}/following`)
 }
 export function bookmarkPost(postId) {
     return API.post(`/post/${postId}/bookmark`)
@@ -89,4 +101,33 @@ export function nestComments(commentList) {
     return commentList.filter((comment) => {
         return comment.parent === null;
     });
+}
+
+export function sortDate(date) {
+
+    let seconds = Math.floor((new Date() - date) / 1000);
+
+    let interval = seconds / 31536000;
+
+    if (interval > 1) {
+        return Math.floor(interval) + "y";
+    }
+    interval = seconds / 2592000;
+    if (interval > 1) {
+        return Math.floor(interval) + "m";
+    }
+    interval = seconds / 86400;
+    if (interval > 1) {
+        return Math.floor(interval) + "d";
+    }
+    interval = seconds / 3600;
+    if (interval > 1) {
+        return Math.floor(interval) + "h";
+    }
+    interval = seconds / 60;
+    if (interval > 1) {
+        return Math.floor(interval) + "m";
+    }
+    return Math.floor(seconds) + "s";
+
 }

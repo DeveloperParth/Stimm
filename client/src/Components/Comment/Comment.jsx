@@ -1,44 +1,29 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
-import { useDispatch } from "react-redux";
-import {
-  removePost,
-  setPostBookmark,
-  setPostLike,
-} from "../../Redux/Features/feedSlice";
-import { bookmarkPost, deletePost, likePost } from "../../Services/Services";
-
-import CreateComment from "./../Comment/CreateComment";
+import CreateComment from "./CreateComment";
 import HoverUserCard from "./../Post/HoverUserCard";
 import {
   Avatar,
-  Image,
   Box,
   Mark,
   Anchor,
   ActionIcon,
-  Button,
-  UnstyledButton,
   Group,
+  Text,
+  Stack,
 } from "@mantine/core";
 import { useHover } from "@mantine/hooks";
 import {
-  IconBookmark,
-  IconHeart,
   IconMessageCircle,
-  IconRepeat,
   IconTrash,
 } from "@tabler/icons";
-import PostButton from "./../Post/PostButton";
 
 function Comment({ comment }) {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const { hovered, ref } = useHover();
   const [createCommentOpened, setCreateCommentOpened] = useState(false);
-  const likePostHandler = async () => {};
   const deletePostHandler = async () => {};
   const createCommentHandler = () => {
     setCreateCommentOpened(true);
@@ -48,7 +33,6 @@ function Comment({ comment }) {
       navigate(`/p/${comment._id}`, { state: { location } });
     }
   };
-  const bookmarkPostHandler = async () => {};
   return (
     <>
       {/* <div className="comment">
@@ -58,41 +42,39 @@ function Comment({ comment }) {
             comment.comments.map((c) => <Comment comment={c} key={c._id} />)}
         </div>
       </div> */}
+      <CreateComment opened={createCommentOpened} setOpened={setCreateCommentOpened} />
       <Box
         sx={(theme) => ({
           position: "relative",
           margin: "20px auto",
-          padding: '1rem'
+          padding: "1rem",
         })}
       >
         <a href="#comment-1" class="comment-border-link">
           <span class="sr-only">Jump to comment-1</span>
         </a>
         <div className="comment" onClick={postClickHandler}>
-          {/* <div className="post__avatar">
-            <Avatar
-              src={"http://localhost:5000/uploads/" + comment.author.avatar}
-              radius="xl"
-              size="sm"
-              sx={{ zIndex: -1 }}
-            />
-          </div> */}
           <div className="post__body">
             <div className="post__header">
-              <div className="post__headerText">
+              <Group>
                 <Avatar
-                  src={"http://localhost:5000/uploads/" + comment.author.avatar}
+                  src={process.env.REACT_APP_UPLOADS_PATH + comment.author.avatar}
                   radius="xl"
-                  size="sm"
+                  size="md"
                   sx={{ zIndex: -1 }}
                 />
-
-                <h3 ref={ref}>
-                  {comment.author.name}
+                <Stack spacing="0">
                   <Anchor
                     component={Link}
                     to={`/u/${comment.author.username}/posts`}
-                  ></Anchor>
+                    ref={ref}
+                    color="inherit"
+                  >
+                    @{comment.author.username}
+                  </Anchor>
+                  <Text size="xs" color="dimmed">
+                    3 days ago
+                  </Text>
                   {hovered ? (
                     <Box
                       ref={ref}
@@ -110,10 +92,8 @@ function Comment({ comment }) {
                       <HoverUserCard username={comment.author.username} />
                     </Box>
                   ) : null}
-                </h3>
-                <span className="post__headerSpecial" ref={ref}>
-                  @{comment.author.username}
-                </span>
+                </Stack>
+
                 <div style={{ float: "right" }}>
                   {comment.isOwner ? (
                     <ActionIcon onClick={deletePostHandler}>
@@ -121,42 +101,40 @@ function Comment({ comment }) {
                     </ActionIcon>
                   ) : null}
                 </div>
-              </div>
-              <div className="post__headerDescription">
-                <p>
-                  {comment.body.split(" ").map((w) => {
-                    // console.log(w);
-                    if (w.startsWith("#")) {
-                      return (
-                        <Link
-                          to={`/explore/?tag=${w.replace("#", "")}`}
-                          key={w}
-                        >
-                          <Mark> {w} </Mark>
-                        </Link>
-                      );
-                    }
-                    if (w.startsWith("@")) {
-                      w = w.replace("@", "");
-                      return (
-                        <Anchor key={w} component={Link} to={`/u/${w}/posts`}>
-                          {w}
-                        </Anchor>
-                      );
-                    }
-                    return <> {w} </>;
-                  })}
-                </p>
-              </div>
-              <ActionIcon>
-                <IconMessageCircle />
-              </ActionIcon>
-              <div className="replies" style={{ marginLeft: "1rem" }}>
-                {comment.comments &&
-                  comment.comments.map((c) => (
-                    <Comment comment={c} key={c._id} />
-                  ))}
-              </div>
+              </Group>
+            </div>
+
+            <div className="post__headerDescription">
+              <p>
+                {comment.body.split(" ").map((w) => {
+                  // console.log(w);
+                  if (w.startsWith("#")) {
+                    return (
+                      <Link to={`/explore/?tag=${w.replace("#", "")}`} key={w}>
+                        <Mark> {w} </Mark>
+                      </Link>
+                    );
+                  }
+                  if (w.startsWith("@")) {
+                    w = w.replace("@", "");
+                    return (
+                      <Anchor key={w} component={Link} to={`/u/${w}/posts`}>
+                        {w}
+                      </Anchor>
+                    );
+                  }
+                  return <> {w} </>;
+                })}
+              </p>
+            </div>
+            <ActionIcon onClick={createCommentHandler}>
+              <IconMessageCircle />
+            </ActionIcon>
+            <div className="replies" style={{ marginLeft: "1rem" }}>
+              {comment.comments &&
+                comment.comments.map((c) => (
+                  <Comment comment={c} key={c._id} />
+                ))}
             </div>
           </div>
         </div>

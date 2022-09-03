@@ -22,7 +22,7 @@ function PostButton({ color, icon, text, active, onClick }) {
       ":hover": {
         color: theme.colors[color][2],
       },
-      "&:hover .icon-container": {
+      ":hover .icon-container": {
         background: theme.fn.rgba(theme.colors[color][8], 0.2),
       },
     };

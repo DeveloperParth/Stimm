@@ -15,6 +15,7 @@ import {
   Modal,
   Menu,
   Button,
+  MediaQuery,
 } from "@mantine/core";
 import {
   IconBell,
@@ -24,10 +25,12 @@ import {
   IconSettings,
   IconWorld,
   IconChevronRight,
+  IconMessage,
 } from "@tabler/icons";
 
 import { useNavigate } from "react-router-dom";
 import useStyles from "../../styles";
+import Icon from "../../Icon";
 const iconSize = 30;
 
 function Navbar() {
@@ -95,22 +98,26 @@ function Navbar() {
       </header> */}
       <header className={"side-nav bar " + classes.bar}>
         <div className="header-container">
-          <Nav withBorder p="xs">
+          <Nav withBorder px="xs">
             <Nav.Section>
               <Box
                 sx={(theme) => ({
-                  paddingLeft: theme.spacing.xs,
-                  paddingRight: theme.spacing.xs,
-                  paddingBottom: theme.spacing.lg,
+                  display: "flex",
+                  // alignItems: "flex-start",
+                  justifyContent: "center",
                   borderBottom: `1px solid ${
                     theme.colorScheme === "dark"
                       ? theme.colors.dark[4]
                       : theme.colors.gray[2]
                   }`,
+                  height: "70px",
                 })}
               >
-                <Group className="brand" position="center" m="auto">
-                  <Title order={2}>S</Title>
+                <Group className="brand" position="left" m="auto">
+                  <Icon />
+                  <MediaQuery smallerThan="md" styles={{ display: "none" }}>
+                    <Title order={2}>Stimm</Title>
+                  </MediaQuery>
                 </Group>
               </Box>
             </Nav.Section>
@@ -134,7 +141,7 @@ function Navbar() {
                     <UserButton
                       image={user.avatar}
                       name={user.name}
-                      email={user.email}
+                      email={user.username}
                     />
                   </Menu.Target>
                   <Menu.Dropdown>
@@ -170,6 +177,12 @@ const data = [
     path: "/explore",
   },
   {
+    icon: <IconMessage size={iconSize} />,
+    color: "grape",
+    label: "Messages",
+    path: "/messages",
+  },
+  {
     icon: <IconBell size={iconSize} />,
     color: "grape",
     label: "Notifciations",
@@ -185,7 +198,7 @@ const data = [
     icon: <IconSettings size={30} />,
     color: "blue",
     label: "Settings",
-    path: "/",
+    path: "/settings",
   },
 ];
 
@@ -240,21 +253,32 @@ const UserButton = forwardRef(
       })}
       {...others}
     >
-      <Group>
+      <Group
+        sx={(theme) => ({
+          flexWrap: "nowrap",
+          ".box-userinfo": {
+            flex: 1,
+          },
+          [`@media (max-width: ${theme.breakpoints.md}px)`]: {
+            ".arrow-icon": {
+              display: "none",
+            },
+            ".box-userinfo": {
+              display: "none",
+            },
+          },
+        })}
+      >
         <Avatar src={image} radius="xl" />
-        <Box sx={{ flex: 1 }}>
+        <Box className="box-userinfo">
           <Text size="sm" weight={500}>
             {name}
           </Text>
-          <Text
-            color="dimmed"
-            size="xs"
-            sx={{ maxWidth: 140, textOverflow: "ellipsis", overflow: "hidden" }}
-          >
+          <Text color="dimmed" size="xs">
             {email}
           </Text>
         </Box>
-        <IconChevronRight size={18} />
+        <IconChevronRight size={18} className="arrow-icon" />
       </Group>
     </UnstyledButton>
   )
