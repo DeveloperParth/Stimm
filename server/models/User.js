@@ -11,11 +11,11 @@ const UserSchema = new Mongoose.Schema({
         required: [true, 'Email is required'],
         uniqe: [true, 'Email is taken']
     },
-    password:{
+    password: {
         type: String,
         required: [true, 'Password is required']
     },
-    name:{
+    name: {
         type: String,
         required: [true, 'Name is required']
     },
@@ -23,13 +23,13 @@ const UserSchema = new Mongoose.Schema({
         type: String,
         default: 'avatar.jpg'
     },
-    cover: {
-        tpye: String,
-    },
     verified: {
         type: Boolean,
         default: false
+    },
+    bio: {
+        type: String
     }
-}, {timestamps: true})
+}, { timestamps: true })
 
 module.exports = Mongoose.model('User', UserSchema, 'Users')

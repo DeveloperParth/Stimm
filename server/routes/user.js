@@ -25,9 +25,11 @@ router.get('/profile', checkUser, async (req, res, next) => {
 })
 router.patch('/profile', checkUser, upload.single('avatar'), async (req, res, next) => {
     try {
-        const { username, name } = req.body
+        const { username, name, bio } = req.body
         const user = await User.findById(res.locals.user._id)
+        console.log(user.bio);
         user.username = username || user.username
+        user.bio = bio || user.bio 
         user.name = name || user.name
         user.avatar = req.file?.filename || user.avatar
         const updatedUser = await user.save()
@@ -62,7 +64,7 @@ router.get('/:username', optionalAuth, async (req, res, next) => {
                     from: 'Follows',
                     localField: '_id',
                     foreignField: 'follower',
-                    as: 'follwing',
+                    as: 'following',
                 },
             },
             {
@@ -92,16 +94,14 @@ router.get('/:username', optionalAuth, async (req, res, next) => {
                 },
             },
             { $addFields: { followers: { $size: '$followers' } } },
-            { $addFields: { follwing: { $size: '$follwing' } } },
+            { $addFields: { following: { $size: '$following' } } },
             { $addFields: { posts: { $size: '$posts' } } },
             { $addFields: { followFlag: { $cond: { if: { $size: '$followFlag' }, then: true, else: false } } } },
 
 
         ])
-
-        res.json({ user: user[0] })
-        // const { password, ...rest } = user._doc
-        // return res.status(200).json({ user: { ...rest, followers, followings, posts } })
+        const { password, verified, ...restUser } = user[0]
+        res.json({ user: restUser })
     } catch (error) {
         next(error)
     }

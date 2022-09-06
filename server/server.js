@@ -11,15 +11,19 @@ if (process.env.NODE_ENV !== 'production') {
     const dotenv = require('dotenv').config()
 }
 
-const { InitiateMongoServer } = require('./config/db')
+const { InitiateMongoServer } = require('./config/db');
+const Converstion = require('./models/Converstion');
 
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 app.use('/uploads', express.static('./uploads'))
+app.use('/api/admin', require('./routes/admin'))
 app.use('/api/auth', require('./routes/auth'))
 app.use('/api/user', require('./routes/user'))
+app.use('/api/search', require('./routes/search'))
+app.use('/api', require('./routes/message'))
 app.use('/api', require('./routes/post'))
 app.use('/api', require('./routes/notification'))
 app.use('/api', require('./routes/comment'))
@@ -36,10 +40,6 @@ io.on('connection', (socket) => {
         id ? global.users[id] = socket : null
 
     })
-    socket.on('message', (message) => {
-        const user = global.users[message.reciver]
-        user?.emit('message', message)
-    })
     socket.on('disconnect', () => {
         delete global.users[getUserBySocketId(socket.id)]
 
@@ -55,6 +55,7 @@ io.on('connection', (socket) => {
 //     const Notification = require('./models/Notification');
 //     const Comment = require('./models/Comment');
 //     const Follow = require('./models/Follow');
+//     const Message = require('./models/Message');
 
 //     await Like.deleteMany()
 //     await Post.deleteMany()
@@ -63,6 +64,8 @@ io.on('connection', (socket) => {
 //     await Notification.deleteMany()
 //     await Comment.deleteMany()
 //     await Follow.deleteMany()
+//     await Follow.deleteMany()
+
 
 // }
 

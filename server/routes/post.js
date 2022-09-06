@@ -322,6 +322,13 @@ router.post('/post/create', checkUser, upload.array('attachments', 1), async (re
         next(error)
     }
 })
+router.post('/post/:id/report', checkUser, upload.array('attachments', 1), async (req, res, next) => {
+    try {
+        return res.status(200).json({ message: 'Post has been reported' })
+    } catch (error) {
+        next(error)
+    }
+})
 router.delete('/post/:id', checkUser, async (req, res, next) => {
     try {
         const post = await Post.findById(req.params.id)
@@ -360,7 +367,7 @@ router.post('/post/:id/like', checkUser, async (req, res, next) => {
             })
             const like = await newLike.save()
             if (like.author != post.author) {
-                sendNotification(post.author, `${res.locals.user.username} liked your post`)
+                sendNotification(post.author, `@${res.locals.user.username} liked your post`)
             }
             return res.status(200).json({ message: 'Liked', like })
         }

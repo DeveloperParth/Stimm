@@ -5,7 +5,7 @@ async function sendNotification(owner, body) {
         owner,
         body
     })
-    // await notification.save()
+    await notification.save()
     global.users[owner]?.emit('notification', body)
 }
 module.exports = { sendNotification }
