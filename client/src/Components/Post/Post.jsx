@@ -231,7 +231,7 @@ function Post({ post, index }) {
                 >
                   {post.attachments.map((a) => (
                     <Image
-                      src={process.env.REACT_APP_UPLOADS_PATH + a.path.replace('uploads\\', '')}
+                      src={process.env.REACT_APP_UPLOADS_PATH + a.path.replace('uploads', '')}
                       radius="0"
                       withPlaceholder
                       key={a}

@@ -31,7 +31,7 @@ import { useSelector } from 'react-redux';
 import { AdminRoutes } from './Admin';
 import MessagePage from './Pages/MessagePage';
 
-export const socket = io('http://localhost:5000/');
+export const socket = io(process.env.REACT_APP_SOCKET_URL);
 
 function App() {
   const { user } = useSelector(state => state.auth)
