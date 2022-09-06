@@ -16,10 +16,11 @@ import {
   IconArrowLeft,
   IconBookmark,
   IconLogout,
+  IconPlus,
   IconSearch,
 } from "@tabler/icons";
 import { useMediaQuery } from "@mantine/hooks";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { logout } from "./../../Redux/Features/authSlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -27,6 +28,7 @@ import { useDispatch, useSelector } from "react-redux";
 function Header({ title, showPostButton, showGoBackButton }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const location = useLocation();
   const { user } = useSelector((state) => state.auth);
   const isMobile = useMediaQuery("(max-width: 576px)");
 
@@ -105,14 +107,33 @@ function Header({ title, showPostButton, showGoBackButton }) {
           <Group align="center" position="apart" px="0">
             <Group>
               {showGoBackButton && (
-                <ActionIcon onClick={() => navigate(-1)}>
+                <ActionIcon
+                  onClick={() => navigate(-1)}
+                  radius="xl"
+                  color="blue"
+                >
                   <IconArrowLeft />
                 </ActionIcon>
               )}
-              <Title order={2} style={{ textTransform: "capitalize" }}>
-                {title}
-              </Title>
+              <Title order={2}>{title}</Title>
             </Group>
+            {showPostButton && (
+              <ActionIcon
+                // variant="filled"
+                // color="blue"
+                sx={(theme) => ({
+                  backgroundColor: theme.colors[theme.primaryColor][6],
+                  ":hover": {
+                    backgroundColor: theme.colors[theme.primaryColor][7],
+                  },
+                })}
+                onClick={() =>
+                  navigate("/post", { state: { background: location } })
+                }
+              >
+                <IconPlus />
+              </ActionIcon>
+            )}
           </Group>
         )}
       </Box>
@@ -124,17 +145,21 @@ function Header({ title, showPostButton, showGoBackButton }) {
         // withCloseButton={false}
         // padding="1rem"
       >
-        <Group mb={20}>
-          <Avatar
-            src={process.env.REACT_APP_UPLOADS_PATH + user.avatar}
-            size="md"
-            radius="xl"
-          />
-          <div>
-            <Title order={6}>{user.name}</Title>
-            <Text color="dimmed">@{user.username}</Text>
-          </div>
-        </Group>
+        {user ? (
+          <Group mb={20}>
+            <Avatar
+              src={process.env.REACT_APP_UPLOADS_PATH + user.avatar}
+              size="md"
+              radius="xl"
+            />
+            <div>
+              <Title order={6}>{user.name}</Title>
+              <Text color="dimmed">@{user.username}</Text>
+            </div>
+          </Group>
+        ) : (
+          <Group mb={20}>Login</Group>
+        )}
         <Box sx={{ borderTop: "1px solid" }}>
           <NavButton icon={<IconBookmark />} label="Bookmarks" />
           <NavButton icon={<IconBookmark />} label="Bookmarks" />

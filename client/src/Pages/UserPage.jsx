@@ -13,6 +13,7 @@ import {
   Avatar,
   Box,
   Button,
+  Center,
   Container,
   Group,
   Loader,
@@ -20,27 +21,28 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-
-import UserTabs from "../Components/User/UserTabs";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchFeed } from "../Redux/Features/feedSlice";
+import { openModal } from "@mantine/modals";
 import { IconArrowLeft } from "@tabler/icons";
 
+import { useDispatch, useSelector } from "react-redux";
+import { fetchFeed } from "../Redux/Features/feedSlice";
+
+import UserTabs from "../Components/User/UserTabs";
+
 function UserPage() {
-  const [user, setUser] = useState();
+  const [user, setUser] = useState(null);
   const [users, setUsers] = useState(null);
   const [isFollowingLoading, setIsFollowingLoading] = useState(false);
   const [followUserModal, setFollowUserModal] = useState(null);
   const { username } = useParams();
   const { user: loggedUser } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const fetchUser = async () => {
     try {
       const response = await getUser(username);
       setUser(response.data.user);
     } catch (error) {
-      console.log(error);
       alert(error.message);
     }
   };
@@ -49,6 +51,30 @@ function UserPage() {
     setUsers(data.followers);
   };
   const followUserHandler = async () => {
+    if (!loggedUser)
+      return openModal({
+        title: `Login to follow ${user.username}`,
+        children: (
+          <>
+            <Button
+              fullWidth
+              radius="lg"
+              mb={10}
+              onClick={() => navigate("/login", { state: {} })}
+            >
+              Login
+            </Button>
+            <Button
+              fullWidth
+              radius="lg"
+              variant="outline"
+              onClick={() => navigate("/login", { state: {} })}
+            >
+              Signup
+            </Button>
+          </>
+        ),
+      });
     setIsFollowingLoading(true);
     if (user.followFlag) {
       await unfollowUser(user._id);
@@ -70,7 +96,6 @@ function UserPage() {
     // eslint-disable-next-line
   }, [followUserModal]);
 
-  if (!user) return <Loader />;
   return (
     <>
       <Modal
@@ -81,7 +106,7 @@ function UserPage() {
         }}
       >
         <Title order={4}>
-          {followUserModal} of {user.username}
+          {followUserModal} of {user?.username}
         </Title>
         {!users && <Loader />}
         {users &&
@@ -97,54 +122,64 @@ function UserPage() {
           })}
       </Modal>
       <Container size="600px" m="0">
-        <Box
-          sx={(theme) => ({
-            paddingLeft: theme.spacing.xs,
-            paddingRight: theme.spacing.xs,
-            paddingBottom: 15,
-            paddingTop: 15,
-            background: theme.colors.dark[7],
-            height: "70px",
-            position: "sticky",
-            top: 0,
-            zIndex: 111,
-            display: "flex",
-            justifyContent: "space-between",
-          })}
-        >
-          <Group align="center" position="left" m="0" px="lg">
-            <ActionIcon onClick={()=>navigate(-1)}>
-              <IconArrowLeft />
-            </ActionIcon>
-            <Title order={3}>
-              {user.username}
-            </Title>
-          </Group>
-          {loggedUser.username !== username && (
-            <Button
-              variant="subtle"
-              onClick={followUserHandler}
-              loading={isFollowingLoading}
-              disabled={isFollowingLoading}
+        {user ? (
+          <>
+            <Box
+              sx={(theme) => ({
+                paddingLeft: theme.spacing.xs,
+                paddingRight: theme.spacing.xs,
+                paddingBottom: 15,
+                paddingTop: 15,
+                background: theme.colors.dark[7],
+                height: "70px",
+                position: "sticky",
+                top: 0,
+                zIndex: 111,
+                display: "flex",
+                justifyContent: "space-between",
+              })}
             >
-              {user.followFlag ? "Following" : "Follow"}
-            </Button>
-          )}
-        </Box>
-        <Box
-          sx={(theme) => ({
-            paddingLeft: theme.spacing.xs,
-            paddingRight: theme.spacing.xs,
-          })}
-        >
-          <Text onClick={() => setFollowUserModal("followers")}>
-            {user.followers ?? 0} Followers
-          </Text>
-          <Text onClick={() => setFollowUserModal("followers")}>
-            {user.following ?? 0} Following
-          </Text>
-          <UserTabs user={user} />
-        </Box>
+              <Group align="center" position="left" m="0" px="lg">
+                <ActionIcon onClick={() => navigate(-1)}>
+                  <IconArrowLeft />
+                </ActionIcon>
+                <Title order={3}>{user.username}</Title>
+              </Group>
+              {loggedUser?._id !== user._id ? (
+                <Button
+                  variant="subtle"
+                  onClick={followUserHandler}
+                  loading={isFollowingLoading}
+                  disabled={isFollowingLoading}
+                >
+                  {user.followFlag ? "Following" : "Follow"}
+                </Button>
+              ) : (
+                <Button variant="subtle" onClick={() => navigate("/settings")}>
+                  Edit Profile
+                </Button>
+              )}
+            </Box>
+            <Box
+              sx={(theme) => ({
+                paddingLeft: theme.spacing.xs,
+                paddingRight: theme.spacing.xs,
+              })}
+            >
+              <Text onClick={() => setFollowUserModal("followers")}>
+                {user.followers ?? 0} Followers
+              </Text>
+              <Text onClick={() => setFollowUserModal("followers")}>
+                {user.following ?? 0} Following
+              </Text>
+              <UserTabs user={user} />
+            </Box>
+          </>
+        ) : (
+          <Center>
+            <Loader />
+          </Center>
+        )}
       </Container>
     </>
   );

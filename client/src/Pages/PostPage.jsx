@@ -1,30 +1,33 @@
-import { Center, Container, Loader } from "@mantine/core";
-import React, { useState } from "react";
-import { useEffect } from "react";
-import { useParams } from "react-router-dom";
-import Comments from "../Components/Comment/Comments";
+import React, { useState, useEffect, useRef } from "react";
+import { useParams, Link } from "react-router-dom";
 import { getSinglePost, likePost, getComments } from "./../Services/Services";
 
-import { Link } from "react-router-dom";
-
-import CreateComment from "./../Components/Comment/CreateComment";
-
-import { Avatar, Image, Mark, Anchor, ActionIcon } from "@mantine/core";
+import {
+  Avatar,
+  Image,
+  Mark,
+  Anchor,
+  ActionIcon,
+  Container,
+} from "@mantine/core";
 import {
   IconHeart,
   IconMessageCircle,
   IconRepeat,
   IconTrash,
 } from "@tabler/icons";
-import { useRef } from "react";
+
+import Comments from "../Components/Comment/Comments";
+import CreateComment from "./../Components/Comment/CreateComment";
 import PostButton from "../Components/Post/PostButton";
 import Header from "../Components/Navigations/Header";
+import PostPlaceHolder from "./../Components/Post/PostPlaceHolder";
 
 function PostPage() {
   const ref = useRef(null);
   const { id } = useParams();
   const [post, setPost] = useState(null);
-  const [comments, setComments] = useState([]);
+  const [comments, setComments] = useState(null);
   const [createCommentOpened, setCreateCommentOpened] = useState(false);
   const [isPostLiked, setIsPostLiked] = useState(post?.likeFlag);
   const fetchPost = async () => {
@@ -34,12 +37,8 @@ function PostPage() {
     } catch (error) {}
   };
   const fetchComments = async () => {
-    try {
-      const res = await getComments("62e522eb5f3a7c46986fb3e9");
-      setComments(res.data.comments);
-    } catch (error) {
-      console.log(error);
-    }
+    const res = await getComments(id);
+    setComments(res.data.comments);
   };
   const likePostHandler = async (e) => {
     await likePost(post._id);
@@ -62,9 +61,7 @@ function PostPage() {
       <Container size="600px">
         <Header title={"post"} showGoBackButton />
         {!post ? (
-          <Center>
-            <Loader />
-          </Center>
+          <PostPlaceHolder />
         ) : (
           <div className="post">
             <div className="post__avatar">
@@ -150,7 +147,8 @@ function PostPage() {
             </div>
           </div>
         )}
-        {comments.length && <Comments comments={comments} />}
+        {!comments && <PostPlaceHolder />}
+        {comments?.length ? <Comments comments={comments} /> : null}
       </Container>
     </>
   );

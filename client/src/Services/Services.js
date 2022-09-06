@@ -42,6 +42,9 @@ export function getUserLikes(id) {
 export function getNotifications() {
     return API.get('/notifications')
 }
+export function getSearch(q) {
+    return API.get(`/search/user?search=${q}`)
+}
 export function setNotificationsRead() {
     return API.post('/notifications/read')
 }
@@ -80,6 +83,9 @@ export function resetPassworrd(id, token, data) {
 export function verifyUser(id, token) {
     return API.post(`/auth/verify/${id}/${token}`)
 }
+export function updateUser(data) {
+    return API.patch('/user/profile', data, { headers: { "Content-Type": "multipart/form-data" } })
+}
 export function getComments(id) {
     return API.get(`/post/${id}/comments`)
 }
@@ -101,6 +107,9 @@ export function nestComments(commentList) {
     return commentList.filter((comment) => {
         return comment.parent === null;
     });
+}
+export function reportPost(post) {
+    return API.post(`/post/${post}/report`)
 }
 
 export function sortDate(date) {
@@ -131,3 +140,11 @@ export function sortDate(date) {
     return Math.floor(seconds) + "s";
 
 }
+export function getConverstionName(converstion, _id) {
+    if (converstion.users.length !== 2) return "Group";
+    return converstion.users.find((u) => u._id !== _id).username;
+};
+export function getConverstionAvatar(converstion, _id) {
+    if (converstion.users.length !== 2) return "Group";
+    return converstion.users.find((u) => u._id !== _id).avatar;
+};

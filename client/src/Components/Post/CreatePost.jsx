@@ -1,10 +1,23 @@
-import { Button, FileButton, Modal, Textarea } from "@mantine/core";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addOwnPost } from "../../Redux/Features/feedSlice";
+import {
+  Button,
+  Container,
+  FileButton,
+  Group,
+  ThemeIcon,
+  Tooltip,
+  Textarea,
+  Image,
+  Indicator,
+} from "@mantine/core";
+import { IconPhoto, IconX } from "@tabler/icons";
+import Header from "../Navigations/Header";
 import { createPost } from "../../Services/Services";
+import { showNotification } from "@mantine/notifications";
 
-function CreatePost({ opened: opene, setOpened }) {
+function CreatePost() {
   const [postBody, setPostBody] = useState("");
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -12,42 +25,72 @@ function CreatePost({ opened: opene, setOpened }) {
   const { user } = useSelector((state) => state.auth);
   const createPostHandler = async (e) => {
     e.preventDefault();
+    console.log(postBody);
     setLoading(true);
     const response = await createPost({ body: postBody, attachments: file });
     dispatch(addOwnPost({ post: response.data.post, author: user }));
     setLoading(false);
-    setOpened(false);
+    setPostBody('')
+    setFile(null)
   };
-  const handleBodyChange = (e) => {
-    if (e.target.value.endsWith("#")) {
-      // open()
-    }
-    setPostBody(e.target.value);
+  const handleFile = (e) => {
+    const allowedTypes = ["image/png", "image/jpeg", "image/jpg"];
+    if (!allowedTypes.includes(e.type))
+      return showNotification({ title: "Only images and videos are allowed" });
+    setFile(e);
   };
   return (
     <>
-      <Modal
-        opened={opene}
-        onClose={() => setOpened(false)}
-        title="Whats on your mind"
-      >
+      <Container size="600px">
+        <Header title="What's on your mind?" showGoBackButton />
         <form encType="multipart/form-data" onSubmit={createPostHandler}>
           <Textarea
+            aria-label="post"
             placeholder="Type....."
             variant="filled"
             autosize
             maxRows={4}
             value={postBody}
-            onChange={handleBodyChange}
+            onChange={(e) => setPostBody(e.target.value)}
           />
-          <Button mt={20} type="submit" loading={loading}>
-            Post
-          </Button>
-          <FileButton onChange={setFile} accept="image/png,image/jpeg">
-            {(props) => <Button {...props}>Upload image</Button>}
-          </FileButton>
+          <Group align="center" position="apart" mt={15}>
+            <FileButton onChange={handleFile} accept="image/png,image/jpeg">
+              {(props) => (
+                <Tooltip
+                  label="Media"
+                  withArrow
+                  position="bottom"
+                  openDelay={200}
+                >
+                  <ThemeIcon
+                    {...props}
+                    variant="light"
+                    sx={{ cursor: "pointer" }}
+                  >
+                    <IconPhoto />
+                  </ThemeIcon>
+                </Tooltip>
+              )}
+            </FileButton>
+            <Button type="submit" loading={loading} radius="lg">
+              Post
+            </Button>
+          </Group>
+          {file && (
+            <Indicator
+              size={40}
+              label={<IconX />}
+              color="dark"
+              position="top-left"
+              offset={10}
+              sx={{cursor: 'pointer'}}
+              onClick={()=>setFile(null)}
+            >
+              <Image src={URL.createObjectURL(file)} />
+            </Indicator>
+          )}
         </form>
-      </Modal>
+      </Container>
     </>
   );
 }

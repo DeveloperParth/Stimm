@@ -11,6 +11,7 @@ import {
   bookmarkPost,
   deletePost,
   likePost,
+  reportPost,
   sortDate,
 } from "../../Services/Services";
 
@@ -21,21 +22,25 @@ import {
   Avatar,
   Image,
   Box,
-  Mark,
   Anchor,
   ActionIcon,
   Text,
   Group,
+  Menu,
 } from "@mantine/core";
 import { useHover } from "@mantine/hooks";
 import {
   IconBookmark,
+  IconBookmarkOff,
+  IconDots,
+  IconFlag,
   IconHeart,
   IconMessageCircle,
   IconRepeat,
   IconTrash,
 } from "@tabler/icons";
 import PostButton from "./PostButton";
+import { showNotification } from "@mantine/notifications";
 
 function Post({ post, index }) {
   const dispatch = useDispatch();
@@ -63,7 +68,14 @@ function Post({ post, index }) {
   const bookmarkPostHandler = async () => {
     await bookmarkPost(post._id);
     const bookmarkFlag = !post.bookmarkFlag;
+    showNotification({
+      title: post.bookmarkFlag ? "Bookmark removed" : "Post bookmarked",
+    });
     dispatch(setPostBookmark({ index, post: { ...post, bookmarkFlag } }));
+  };
+  const reportPostHandler = async () => {
+    await reportPost(post._id);
+    showNotification({ title: "Post has been reported" });
   };
   return (
     <>
@@ -131,14 +143,47 @@ function Post({ post, index }) {
                   </Text>
                 </Group>
                 <div style={{ float: "right" }}>
-                  {post.isOwner ? (
-                    <ActionIcon onClick={deletePostHandler}>
-                      <IconTrash size={18} />
-                    </ActionIcon>
-                  ) : null}
-                  <ActionIcon onClick={bookmarkPostHandler}>
-                    <IconBookmark fill={post.bookmarkFlag ? "white" : "none"} />
-                  </ActionIcon>
+                  <Menu width={200}>
+                    <Menu.Target>
+                      <ActionIcon>
+                        <IconDots />
+                      </ActionIcon>
+                    </Menu.Target>
+
+                    <Menu.Dropdown>
+                      {post.bookmarkFlag ? (
+                        <Menu.Item
+                          onClick={bookmarkPostHandler}
+                          icon={<IconBookmarkOff size={20} />}
+                        >
+                          Remove Bookmark
+                        </Menu.Item>
+                      ) : (
+                        <Menu.Item
+                          onClick={bookmarkPostHandler}
+                          icon={<IconBookmark size={20} />}
+                        >
+                          Bookmark
+                        </Menu.Item>
+                      )}
+
+                      <Menu.Item
+                        onClick={reportPostHandler}
+                        icon={<IconFlag size={20} />}
+                      >
+                        Report post
+                      </Menu.Item>
+                      {post.isOwner ? (
+                        <Menu.Item
+                          icon={<IconTrash size={18} />}
+                          color="red"
+                          onClick={deletePostHandler}
+                        >
+                          Delete post
+                        </Menu.Item>
+                      ) : null}
+                    </Menu.Dropdown>
+                  </Menu>
                 </div>
               </div>
             </div>
@@ -149,18 +194,24 @@ function Post({ post, index }) {
                     // console.log(w);
                     if (w.startsWith("#")) {
                       return (
-                        <Link
+                        <Anchor
+                          component={Link}
                           to={`/explore/?tag=${w.replace("#", "")}`}
                           key={w}
                         >
-                          <Mark> {w} </Mark>
-                        </Link>
+                          <> {w} </>
+                        </Anchor>
                       );
                     }
                     if (w.startsWith("@")) {
                       w = w.replace("@", "");
                       return (
-                        <Anchor key={w} component={Link} to={`/u/${w}/posts`}>
+                        <Anchor
+                          key={w}
+                          component={Link}
+                          to={`/u/${w}/posts`}
+                          underline
+                        >
                           {w}
                         </Anchor>
                       );
@@ -180,7 +231,7 @@ function Post({ post, index }) {
                 >
                   {post.attachments.map((a) => (
                     <Image
-                      src={process.env.REACT_APP_UPLOADS_PATH + a.path}
+                      src={process.env.REACT_APP_UPLOADS_PATH + a.path.replace('uploads\\', '')}
                       radius="0"
                       withPlaceholder
                       key={a}

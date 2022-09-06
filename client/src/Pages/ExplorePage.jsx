@@ -33,7 +33,7 @@ function ExplorePage() {
   return (
     <>
       <Container size="600px">
-        <Header title={activeTab}/>
+        <Header title={activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}/>
         <Tabs
           defaultValue="hashtags"
           value={activeTab}

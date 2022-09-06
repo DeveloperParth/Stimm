@@ -140,7 +140,9 @@ body {
 .post__avatar {
   margin-right: 1rem;
 }
-
+.post__content p{
+  white-space: pre
+}
 /* login */
 
 .center-vertical {
@@ -172,6 +174,9 @@ body {
 
 .aside {
   margin-left: 1rem;
+}
+.search{
+  position: relative;
 }
 
 .comment-border-link {
