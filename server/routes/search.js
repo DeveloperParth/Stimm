@@ -8,8 +8,7 @@ const optionalAuth = require('./../middlewares/optionalAuth')
 router.get('/user', optionalAuth, async (req, res, next) => {
     try {
         const query = req.query.search
-        const results = await User.find({ username: { $regex: query, $options: 'i' } }).select('-password -verified')
-        console.log(query);
+        const results = await User.find({ $or: [{ username: { $regex: query, $options: 'i' } }, { name: { $regex: query, $options: 'i' } }] }).select('-password -verified')
         return res.status(200).json({ results })
     } catch (error) {
         next(error)

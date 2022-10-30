@@ -4,7 +4,6 @@ import { Navigate } from "react-router-dom";
 
 function AuthRoute({ children }) {
   let auth = useSelector((state) => state.auth);
-  console.log(auth.user);
   if (auth.user) {
     return <Navigate to="/" replace />;
   }

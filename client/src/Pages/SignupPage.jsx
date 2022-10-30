@@ -3,9 +3,10 @@ import {
   Anchor,
   Button,
   Card,
-  Center,
+  Group,
   Mark,
   Modal,
+  PasswordInput,
   Space,
   Text,
   TextInput,
@@ -15,6 +16,7 @@ import { IconAt, IconCheck, IconX } from "@tabler/icons";
 import { Link } from "react-router-dom";
 import { useValidatedState } from "@mantine/hooks";
 import { getUsername, getEmail, signupUser } from "./../Services/Services";
+import Icon from "../Icon";
 
 function SignupPage() {
   const [isUsernameTaken, setIsUsernameTaken] = useState(null);
@@ -23,11 +25,8 @@ function SignupPage() {
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [{ value: emailValue, valid: validEmail }, setEmail] =
     useValidatedState("", (v) => v.match(/\S+@\S+\.\S+/), true);
-  const [{ valid: validUsername }, setUsername] = useValidatedState(
-    "",
-    (v) => v.length > 5,
-    true
-  );
+  const [{ valid: validUsername, value: usernameValue }, setUsername] =
+    useValidatedState("", (v) => v.length > 5, true);
 
   const [{ valid: validName }, setName] = useValidatedState(
     "",
@@ -85,8 +84,7 @@ function SignupPage() {
       isUsernameTaken !== null &&
       isEmailTaken !== null
     ) {
-      const { data } = await signupUser(body);
-      console.log(data);
+      await signupUser(body);
       setShowEmailModal(true);
     }
   };
@@ -98,14 +96,18 @@ function SignupPage() {
         email={emailValue}
       />
       <div className="center-vertical">
-        <Center>
           <Card
             p="xl"
             shadow="sm"
             radius="md"
             withBorder
-            style={{ width: "300px" }}
+            style={{ maxWidth: "350px", width: '100%' }}
           >
+            <Group align="center" position="center">
+              <Icon />
+              <Title order={1}>Stimm</Title>
+            </Group>
+            <Space h={15} />
             <form onSubmit={signupHandler}>
               <Title order={4} align="center">
                 Signup
@@ -130,7 +132,7 @@ function SignupPage() {
                   (isUsernameTaken ? "Username is taken" : false)
                 }
                 rightSection={
-                  validUsername ? (
+                  validUsername && usernameValue ? (
                     isUsernameTaken ? (
                       <IconX color="red" />
                     ) : (
@@ -150,7 +152,7 @@ function SignupPage() {
                   (isEmailTaken ? "Email is taken" : false)
                 }
                 rightSection={
-                  validEmail ? (
+                  validEmail && emailValue ? (
                     isEmailTaken ? (
                       <IconX color="red" />
                     ) : (
@@ -163,7 +165,7 @@ function SignupPage() {
               />
               <Space h={5} />
 
-              <TextInput
+              <PasswordInput
                 placeholder="Password"
                 label="Enter password"
                 onChange={(e) => setP(e.target.value)}
@@ -176,7 +178,7 @@ function SignupPage() {
               />
               <Space h={5} />
 
-              <TextInput
+              <PasswordInput
                 placeholder="Confirm Password"
                 label="Confirm password"
                 name="cpassword"
@@ -204,7 +206,6 @@ function SignupPage() {
               </div>
             </form>
           </Card>
-        </Center>
       </div>
     </>
   );

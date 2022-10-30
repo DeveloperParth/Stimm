@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Container, Loader } from "@mantine/core";
 import { getBookmarks } from "../../Services/Services";
 import BookmarksPost from "./BookmarksPost";
+import Header from "../../Components/Navigations/Header";
 
 function BookmarksPage() {
   const [bookmarks, setBookmarks] = useState(null);
@@ -25,7 +26,7 @@ function BookmarksPage() {
     ));
   return (
     <Container size="600px" m="0">
-      {/* <Header title="b"/> */}
+      <Header title="Bookmarks" showGoBackButton/>
       {!bookmarks && <Loader />}
       {bookmarks?.length ? mappedBookmarks : "No saved bookmarks"}
     </Container>

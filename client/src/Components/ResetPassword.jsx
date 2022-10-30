@@ -34,6 +34,7 @@ function ResetPassword() {
     }
     const { data } = await resetPassworrd(id, token, { password });
     dispatch(setUser({ user: data.user }));
+    window.location.href = '/'
   };
 
   return (

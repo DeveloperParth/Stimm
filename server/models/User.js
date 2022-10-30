@@ -29,6 +29,14 @@ const UserSchema = new Mongoose.Schema({
     },
     bio: {
         type: String
+    },
+    banned: {
+        type: Boolean,
+        default: false
+    },
+    role: {
+        type: String,
+        enum: ['ADMIN', 'USER']
     }
 }, { timestamps: true })
 

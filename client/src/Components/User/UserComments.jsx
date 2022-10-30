@@ -1,4 +1,4 @@
-import { Grid, Loader } from "@mantine/core";
+import { Anchor, Box, Grid, Loader } from "@mantine/core";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getUserComments } from "../../Services/Services";
@@ -27,7 +27,11 @@ function UserComments({ user }) {
             <Grid.Col
               span={12}
               sx={(theme) => ({
-                background: i % 2 ? theme.colors.dark[7] : theme.colors.dark[9],
+                borderBottom: `1px solid ${
+                  theme.colorScheme === "dark"
+                    ? theme.colors.dark[4]
+                    : theme.colors.gray[2]
+                }`,
               })}
             >
               <UserComment comment={c} />
@@ -44,16 +48,17 @@ const UserComment = ({ comment }) => {
   return (
     <>
       <div>
-        <div className="post-details">
+        <Box mb={8} sx={{color: 'GrayText'}}>
           Replyed to{" "}
-          <Link to={"/u/" + comment.post.author.username}>
-            {comment.post.author.username}
-          </Link>{" "}
+          <Anchor component={Link} to={"/u/" + comment.post?.author.username}>
+            {comment.post?.author.username}
+          </Anchor>{" "}
           on post{" "}
-          <Link to={"/p/" + comment.post._id}>{comment.post.body} </Link>
-        </div>
-        <hr />
-        <div className="comment">{comment.body}</div>
+          <Anchor component={Link} to={"/p/" + comment.post?._id}>
+            {comment.post?.body}{" "}
+          </Anchor>
+        </Box>
+        <Box sx={(theme) => ({})}>{comment.body}</Box>
       </div>
     </>
   );

@@ -3,7 +3,7 @@ import {
   Anchor,
   Button,
   Card,
-  Center,
+  Group,
   Modal,
   Space,
   Text,
@@ -14,6 +14,7 @@ import { IconAt } from "@tabler/icons";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { forgotUser } from "../Services/Services";
+import Icon from "../Icon";
 
 function ForgotPage() {
   const navigate = useNavigate();
@@ -68,48 +69,51 @@ function ForgotPage() {
         </div>
       </Modal>
       <div className="center-vertical">
-        <Center>
-          <Card
-            p="xl"
-            shadow="sm"
-            radius="md"
-            withBorder
-            style={{ width: "350px" }}
-          >
-            <form onSubmit={forgotPasswordValidator}>
-              <Title order={4} align="center">
-                Reset password
-              </Title>
-              <Space h={15} />
-              <TextInput
-                icon={<IconAt size={18} />}
-                placeholder="Email"
-                label="Enter email"
-                onChange={(e) => setEmail(e.target.value)}
-                value={email}
-                error={emailError}
-                description="An email will be sent if account exists with this email address"
-                required
-              />
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "right",
-                }}
-              >
-                <Anchor component={Link} to="/login" color="dimmed">
-                  Return to login
-                </Anchor>
-              </div>
-              <Space h={10} />
-              <div style={{ display: "flex", justifyContent: "center" }}>
-                <Button variant="white" size="md" type="submit">
-                  Send
-                </Button>
-              </div>
-            </form>
-          </Card>
-        </Center>
+        <Card
+          p="xl"
+          shadow="sm"
+          radius="md"
+          withBorder
+          style={{ maxWidth: "350px", width: "100%" }}
+        >
+          <form onSubmit={forgotPasswordValidator}>
+            <Group align="center" position="center">
+              <Icon />
+              <Title order={1}>Stimm</Title>
+            </Group>
+            <Space h={20} />
+            <Title order={4} align="center">
+              Reset password
+            </Title>
+            <Space h={15} />
+            <TextInput
+              icon={<IconAt size={18} />}
+              placeholder="Email"
+              label="Enter email"
+              onChange={(e) => setEmail(e.target.value)}
+              value={email}
+              error={emailError}
+              description="An email will be sent if account exists with this email address"
+              required
+            />
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "right",
+              }}
+            >
+              <Anchor component={Link} to="/login" color="dimmed">
+                Return to login
+              </Anchor>
+            </div>
+            <Space h={10} />
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <Button variant="white" size="md" type="submit">
+                Send
+              </Button>
+            </div>
+          </form>
+        </Card>
       </div>
     </>
   );

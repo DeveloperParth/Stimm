@@ -15,8 +15,8 @@ const { InitiateMongoServer } = require('./config/db');
 const Converstion = require('./models/Converstion');
 
 app.use(cors())
-app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+app.use(express.json())
 
 app.use('/uploads', express.static('./uploads'))
 app.use('/api/admin', require('./routes/admin'))
@@ -28,6 +28,7 @@ app.use('/api', require('./routes/post'))
 app.use('/api', require('./routes/notification'))
 app.use('/api', require('./routes/comment'))
 app.use('/api', require('./routes/bookmark'))
+app.use('/api', require('./routes/contact'))
 app.use(ErrorHandler)
 
 
@@ -38,8 +39,11 @@ const getUserBySocketId = (socketId, object = global.users) => Object.keys(objec
 io.on('connection', (socket) => {
     socket.on('add user', (id) => {
         id ? global.users[id] = socket : null
-
     })
+    // socket.on('typing', async ({ converstion: id, sender }) => {
+    //     const c = await Converstion.findById(id)
+    //     c.users?.map(u => u !== sender && global.users[u]?.emit('typing', { converstion: c._id, message: 'typing' }))
+    // })
     socket.on('disconnect', () => {
         delete global.users[getUserBySocketId(socket.id)]
 
@@ -56,6 +60,7 @@ io.on('connection', (socket) => {
 //     const Comment = require('./models/Comment');
 //     const Follow = require('./models/Follow');
 //     const Message = require('./models/Message');
+//     const Converstion = require('./models/Converstion')
 
 //     await Like.deleteMany()
 //     await Post.deleteMany()
@@ -65,6 +70,8 @@ io.on('connection', (socket) => {
 //     await Comment.deleteMany()
 //     await Follow.deleteMany()
 //     await Follow.deleteMany()
+//     await Message.deleteMany()
+//     await Converstion.deleteMany()
 
 
 // }

@@ -6,6 +6,7 @@ import {
   followUser,
   unfollowUser,
   getFollowers,
+  getFollowing,
 } from "./../Services/Services";
 
 import {
@@ -50,6 +51,10 @@ function UserPage() {
     const { data } = await getFollowers(user._id);
     setUsers(data.followers);
   };
+  const fetchFollowing = async () => {
+    const { data } = await getFollowing(user._id);
+    setUsers(data.following);
+  };
   const followUserHandler = async () => {
     if (!loggedUser)
       return openModal({
@@ -93,6 +98,8 @@ function UserPage() {
   }, []);
   useEffect(() => {
     followUserModal === "followers" && fetchFollowers();
+    followUserModal === "following" && fetchFollowing();
+
     // eslint-disable-next-line
   }, [followUserModal]);
 
@@ -105,18 +112,33 @@ function UserPage() {
           setUsers(null);
         }}
       >
-        <Title order={4}>
+        <Title order={4} mb="sm">
           {followUserModal} of {user?.username}
         </Title>
         {!users && <Loader />}
         {users &&
           users.map((user) => {
-            return (
-              <Box>
-                <Avatar
-                  src={process.env.REACT_APP_UPLOADS_PATH + user.avatar}
-                  radius="lg"
-                />
+            return followUserModal == "followers" ? (
+              <Box mb="md" sx={{ cursor: "pointer" }}>
+                <Group>
+                  <Avatar
+                    src={
+                      process.env.REACT_APP_UPLOADS_PATH + user.follower.avatar
+                    }
+                    radius="50%"
+                  />
+                  <Text>{user.follower.name}</Text>
+                </Group>
+              </Box>
+            ) : (
+              <Box mb="md" sx={{ cursor: "pointer" }}>
+                <Group>
+                  <Avatar
+                    src={process.env.REACT_APP_UPLOADS_PATH + user.user.avatar}
+                    radius="50%"
+                  />
+                  <Text>{user.user.name}</Text>
+                </Group>
               </Box>
             );
           })}
@@ -139,11 +161,11 @@ function UserPage() {
                 justifyContent: "space-between",
               })}
             >
-              <Group align="center" position="left" m="0" px="lg">
+              <Group align="center" position="left" m="0">
                 <ActionIcon onClick={() => navigate(-1)}>
                   <IconArrowLeft />
                 </ActionIcon>
-                <Title order={3}>{user.username}</Title>
+                <Title order={4}>{user.username}</Title>
               </Group>
               {loggedUser?._id !== user._id ? (
                 <Button
@@ -166,12 +188,37 @@ function UserPage() {
                 paddingRight: theme.spacing.xs,
               })}
             >
-              <Text onClick={() => setFollowUserModal("followers")}>
-                {user.followers ?? 0} Followers
-              </Text>
-              <Text onClick={() => setFollowUserModal("followers")}>
-                {user.following ?? 0} Following
-              </Text>
+              <Group align="center">
+                <Avatar
+                  src={process.env.REACT_APP_UPLOADS_PATH + user.avatar}
+                  size="xl"
+                  radius="50%"
+                />
+                <div>
+                  <Group>
+                    <Text
+                      color="dimmed"
+                      underline
+                      sx={{ cursor: "pointer" }}
+                      onClick={() => setFollowUserModal("followers")}
+                    >
+                      {user.followers ?? 0} Followers
+                    </Text>
+                    <Text
+                      color="dimmed"
+                      underline
+                      sx={{ cursor: "pointer" }}
+                      onClick={() => setFollowUserModal("following")}
+                    >
+                      {user.following ?? 0} Following
+                    </Text>
+                  </Group>
+                  <div>
+                    <Text size="sm">{user.bio}</Text>
+                  </div>
+                </div>
+              </Group>
+
               <UserTabs user={user} />
             </Box>
           </>

@@ -1,5 +1,26 @@
 import API from "./API";
 
+export function getUsers() {
+    return API.get('/admin/users')
+}
+export function getReports() {
+    return API.get('/admin/reports')
+}
+export function deletePostAdmin(id) {
+    return API.delete(`/admin/post/${id}`)
+}
+export function deleteCommentAdmin(id) {
+    return API.delete(`/admin/comment/${id}`)
+}
+export function banUser(id) {
+    return API.post(`/admin/user/${id}/ban`)
+}
+export function unbanUser(id) {
+    return API.post(`/admin/user/${id}/unban`)
+}
+export function getStats() {
+    return API.get('/admin/stats')
+}
 export function getSinglePost(id) {
     return API.get('/post/' + id)
 }
@@ -12,8 +33,8 @@ export function getTags() {
 export function getTrandingPosts() {
     return API.get('/post/tranding')
 }
-export function getFeed(offset) {
-    return API.get('/post/feed', { params: { offset } })
+export function getFeed(page) {
+    return API.get('/post/feed', { params: { page } })
 }
 export function getUser(username) {
     return API.get(`/user/${username}`)
@@ -21,6 +42,7 @@ export function getUser(username) {
 export function getBookmarks() {
     return API.get('/bookmarks/')
 }
+
 export function getFollowers(id) {
     return API.get(`/user/${id}/followers`)
 }
@@ -41,6 +63,9 @@ export function getUserLikes(id) {
 }
 export function getNotifications() {
     return API.get('/notifications')
+}
+export function getNotificationsCount() {
+    return API.get('/notifications/count')
 }
 export function getSearch(q) {
     return API.get(`/search/user?search=${q}`)
@@ -86,6 +111,16 @@ export function verifyUser(id, token) {
 export function updateUser(data) {
     return API.patch('/user/profile', data, { headers: { "Content-Type": "multipart/form-data" } })
 }
+export function createConverstion(data) {
+    return API.post('/converstion/create', data)
+
+}
+export function createComment(id, data) {
+    return API.post(`/post/${id}/comment`, data)
+}
+export function deleteComment(id) {
+    return API.delete(`/comment/${id}/`)
+}
 export function getComments(id) {
     return API.get(`/post/${id}/comments`)
 }
@@ -95,25 +130,11 @@ export function getUsername(u) {
 export function getEmail(e) {
     return API.post(`/auth/email/${e}`)
 }
-export function nestComments(commentList) {
-    const commentMap = {};
-    commentList.forEach((comment) => (commentMap[comment._id] = comment));
-    commentList.forEach((comment) => {
-        if (comment.parent !== null) {
-            const parent = commentMap[comment.parent];
-            (parent.comments = parent.comments || []).push(comment);
-        }
-    });
-    return commentList.filter((comment) => {
-        return comment.parent === null;
-    });
-}
 export function reportPost(post) {
     return API.post(`/post/${post}/report`)
 }
 
 export function sortDate(date) {
-
     let seconds = Math.floor((new Date() - date) / 1000);
 
     let interval = seconds / 31536000;

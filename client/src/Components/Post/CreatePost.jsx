@@ -30,8 +30,11 @@ function CreatePost() {
     const response = await createPost({ body: postBody, attachments: file });
     dispatch(addOwnPost({ post: response.data.post, author: user }));
     setLoading(false);
-    setPostBody('')
-    setFile(null)
+    setPostBody("");
+    setFile(null);
+    showNotification({
+      title: "Post created",
+    });
   };
   const handleFile = (e) => {
     const allowedTypes = ["image/png", "image/jpeg", "image/jpg"];
@@ -83,8 +86,8 @@ function CreatePost() {
               color="dark"
               position="top-left"
               offset={10}
-              sx={{cursor: 'pointer'}}
-              onClick={()=>setFile(null)}
+              sx={{ cursor: "pointer" }}
+              onClick={() => setFile(null)}
             >
               <Image src={URL.createObjectURL(file)} />
             </Indicator>

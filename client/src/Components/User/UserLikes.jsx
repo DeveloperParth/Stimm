@@ -1,4 +1,4 @@
-import { Grid } from "@mantine/core";
+import { Anchor, Grid } from "@mantine/core";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getUserLikes } from "../../Services/Services";
@@ -27,7 +27,11 @@ function UserLikes({ user }) {
             <Grid.Col
               span={12}
               sx={(theme) => ({
-                background: i % 2 ? theme.colors.dark[7] : theme.colors.dark[9],
+                borderBottom: `1px solid ${
+                  theme.colorScheme === "dark"
+                    ? theme.colors.dark[4]
+                    : theme.colors.gray[2]
+                }`,
               })}
             >
               <UserLike like={c} />
@@ -41,10 +45,10 @@ const UserLike = ({ like }) => {
   return (
     <>
       <div>
-        <div className="post-details">
-          <Link to={"/u/" + like.post.body}>{like.post.author.username}</Link>{" "}
-          On post <Link to={"/p/" + like.post._id}>{like.post.body} </Link>
-        </div>
+        Liked post{" "}
+        <Anchor component={Link} to={"/p/" + like.post._id}>
+          {like.post.body}{" "}
+        </Anchor>
       </div>
     </>
   );

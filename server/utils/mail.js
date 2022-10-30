@@ -14,7 +14,7 @@ function sendAccountVerificationMail(email, link) {
     transporter.sendMail({
         from: process.env.MAIL_USER,
         to: email,
-        subject: 'OTP verification',
+        subject: 'Email verification',
         html: `<a href=${link}>Verify your account</a>`
     }, (error, info) => {
         if (error) {
@@ -24,4 +24,18 @@ function sendAccountVerificationMail(email, link) {
         console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
     })
 }
-module.exports = { transporter, sendAccountVerificationMail }
+function sendPasswordResetMail(email, link) {
+    transporter.sendMail({
+        from: process.env.MAIL_USER,
+        to: email,
+        subject: 'Change password',
+        html: `<a href=${link}>Change your password</a>`
+    }, (error, info) => {
+        if (error) {
+            throw error
+        }
+        console.log('Message sent: %s', info.messageId);
+        console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+    })
+}
+module.exports = { transporter, sendAccountVerificationMail, sendPasswordResetMail }

@@ -29,7 +29,7 @@ router.patch('/profile', checkUser, upload.single('avatar'), async (req, res, ne
         const user = await User.findById(res.locals.user._id)
         console.log(user.bio);
         user.username = username || user.username
-        user.bio = bio || user.bio 
+        user.bio = bio || user.bio
         user.name = name || user.name
         user.avatar = req.file?.filename || user.avatar
         const updatedUser = await user.save()
@@ -97,7 +97,6 @@ router.get('/:username', optionalAuth, async (req, res, next) => {
             { $addFields: { following: { $size: '$following' } } },
             { $addFields: { posts: { $size: '$posts' } } },
             { $addFields: { followFlag: { $cond: { if: { $size: '$followFlag' }, then: true, else: false } } } },
-
 
         ])
         const { password, verified, ...restUser } = user[0]
@@ -249,6 +248,14 @@ router.get('/:id/followers', optionalAuth, async (req, res, next) => {
     try {
         const followers = await Follow.find({ user: req.params.id }).populate('follower', 'name username avatar')
         return res.status(200).json({ followers })
+    } catch (error) {
+        next(error)
+    }
+})
+router.get('/:id/following', optionalAuth, async (req, res, next) => {
+    try {
+        const following = await Follow.find({ follower: req.params.id }).populate('user', 'name username avatar')
+        return res.status(200).json({ following })
     } catch (error) {
         next(error)
     }

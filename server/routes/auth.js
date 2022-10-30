@@ -3,14 +3,15 @@ const User = require('../models/User')
 const BaseError = require('./../utils/BaseError')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const { sendAccountVerificationMail } = require('../utils/mail')
+const { sendAccountVerificationMail, sendPasswordResetMail } = require('../utils/mail')
 
 router.post('/login', async (req, res, next) => {
     try {
         const { email, password: uPassword } = req.body
         if (!email && !uPassword) throw new BaseError(400, 'Email and password are required')
-        const user = await User.findOne({ $or: [{ email }, { 'username': email }] })
+        const user = await User.findOne({ $or: [{ email }, { username: { $regex: email, $options: 'i' } }] })
         if (!user) throw new BaseError(401, 'Email or password is wrong')
+        if (user.banned) throw new BaseError(403, 'User is banned')
         const isSame = await bcrypt.compare(uPassword, user.password)
         if (!isSame) throw new BaseError(401, 'Email or password is wrong')
         if (!user.verified) throw new BaseError(401, "User not verified")
@@ -28,7 +29,7 @@ router.post('/signup', async (req, res, next) => {
         const { email, password, name, username } = req.body
         const emailExist = await User.findOne({ email })
         if (emailExist) throw new BaseError(400, 'Account alreday exists')
-        const usernameExist = await User.findOne({ username })
+        const usernameExist = await User.findOne({ username: { $regex: username, $options: 'i' } })
         if (usernameExist) throw new BaseError(400, 'Username is taken')
         const hasedPassword = await bcrypt.hash(password, 10)
         const user = new User({
@@ -69,8 +70,9 @@ router.post('/forgot', async (req, res, next) => {
         if (!user) return res.status(200)
         const token = jwt.sign({ id: user._id }, process.env.JWT_VERIFY + user.password, { expiresIn: '60m' })
         const link = `http://localhost:3000/forgot/verify/${user._id}/${token}`
-        console.log(link);
+        sendPasswordResetMail(user.email, link)
         return res.status(200).json({ message: 'Please verify your account, An email has been sent to your mail' })
+
     } catch (error) {
         next(error)
     }

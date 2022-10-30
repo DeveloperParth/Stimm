@@ -36,13 +36,13 @@ import {
   IconFlag,
   IconHeart,
   IconMessageCircle,
-  IconRepeat,
+  IconShare,
   IconTrash,
 } from "@tabler/icons";
 import PostButton from "./PostButton";
 import { showNotification } from "@mantine/notifications";
 
-function Post({ post, index }) {
+function Post({ post, index, lastPostRef }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -80,11 +80,12 @@ function Post({ post, index }) {
   return (
     <>
       <CreateComment
-        post={post}
+        post={post._id}
         opened={createCommentOpened}
         setOpened={setCreateCommentOpened}
       />
       <Box
+        ref={lastPostRef}
         sx={(theme) => ({
           borderBottom: `1px solid ${
             theme.colorScheme === "dark"
@@ -189,7 +190,7 @@ function Post({ post, index }) {
             </div>
             <div className="post__content">
               <div className="post__headerDescription">
-                <p>
+                <p style={{ wordWrap: "break-word" }}>
                   {post.body.split(" ").map((w) => {
                     // console.log(w);
                     if (w.startsWith("#")) {
@@ -231,7 +232,10 @@ function Post({ post, index }) {
                 >
                   {post.attachments.map((a) => (
                     <Image
-                      src={process.env.REACT_APP_UPLOADS_PATH + a.path.replace('uploads', '')}
+                      src={
+                        process.env.REACT_APP_UPLOADS_PATH +
+                        a.path.replace("uploads", "")
+                      }
                       radius="0"
                       withPlaceholder
                       key={a}
@@ -250,8 +254,14 @@ function Post({ post, index }) {
 
               <PostButton
                 color="green"
-                icon={<IconRepeat size={20} />}
-                text="20"
+                icon={<IconShare size={20} />}
+                onClick={() => {
+                  navigator.clipboard.writeText(
+                    `${window.location.hostname}:${window.location.port}/p/${post._id}`
+                  );
+                  return showNotification({ title: "Copied to clipboard" });
+                }}
+                // text="20"
               />
               <PostButton
                 color="pink"

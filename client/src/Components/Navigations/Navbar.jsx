@@ -27,6 +27,8 @@ import {
   IconWorld,
   IconChevronRight,
   IconMessage,
+  IconUser,
+  IconTools,
 } from "@tabler/icons";
 
 import { useNavigate } from "react-router-dom";
@@ -36,6 +38,7 @@ const iconSize = 30;
 
 function Navbar() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [showLogout, setShowLogout] = useState(false);
   const { user } = useSelector((state) => state.auth);
   const theme = useMantineTheme();
@@ -58,45 +61,6 @@ function Navbar() {
           </Button>
         </Group>
       </Modal>
-      {/* <header className={"side-nav bar"}>
-        <div className="header-container">
-          <div className="item" onClick={() => navigate("/")}>
-            <IconHome size={iconSize} />
-            <span>Home</span>
-          </div>
-
-          <div className="item" onClick={() => navigate("/explore")}>
-            <IconWorld size={iconSize} />
-            <span>Explore</span>
-          </div>
-
-          <div className="item" onClick={() => navigate("/notifications")}>
-            <IconBell size={iconSize} />
-            <span>Notifications</span>
-          </div>
-
-          <div className="item" onClick={() => navigate("/bookmarks")}>
-            <IconBookmarks size={iconSize} />
-            <span>Bookmarks</span>
-          </div>
-          <div className="item" onClick={() => navigate("/")}>
-            <IconSettings size={iconSize} />
-            <span>Settings</span>
-          </div>
-          <div className="item" onClick={() => navigate("/me")}>
-            <Avatar src={user.avatar} />
-            <span>Profile</span>
-          </div>
-          <div
-            style={{ height: "100%" }}
-            className="item"
-            onClick={() => dispatch(logout())}
-          >
-            <IconLogout size={iconSize} />
-            <span>Logout</span>
-          </div>
-        </div>
-      </header> */}
       <header className={"side-nav bar " + classes.bar}>
         <div className="header-container">
           <Nav withBorder px="xs">
@@ -104,7 +68,6 @@ function Navbar() {
               <Box
                 sx={(theme) => ({
                   display: "flex",
-                  // alignItems: "flex-start",
                   justifyContent: "center",
                   borderBottom: `1px solid ${
                     theme.colorScheme === "dark"
@@ -123,11 +86,11 @@ function Navbar() {
               </Box>
             </Nav.Section>
             <Nav.Section grow mt="xs">
-              <MainLinks />
+              <MainLinks user={user} />
             </Nav.Section>
 
-            {user && (
-              <Nav.Section>
+            <Nav.Section>
+              {user ? (
                 <Box
                   sx={{
                     paddingTop: theme.spacing.sm,
@@ -148,6 +111,20 @@ function Navbar() {
                     </Menu.Target>
                     <Menu.Dropdown>
                       <Menu.Item
+                        icon={<IconUser size={18} />}
+                        onClick={() => navigate(`/u/${user.username}/posts`)}
+                      >
+                        <Text>Profile</Text>
+                      </Menu.Item>
+                      {user.role === "ADMIN" && (
+                        <Menu.Item
+                          icon={<IconTools size={18} />}
+                          onClick={() => navigate(`/admin`)}
+                        >
+                          <Text>Admin</Text>
+                        </Menu.Item>
+                      )}
+                      <Menu.Item
                         color="red"
                         icon={<IconLogout size={18} />}
                         onClick={() => setShowLogout(true)}
@@ -157,8 +134,17 @@ function Navbar() {
                     </Menu.Dropdown>
                   </Menu>
                 </Box>
-              </Nav.Section>
-            )}
+              ) : (
+                <Button
+                  fullWidth
+                  size="lg"
+                  variant="subtle"
+                  onClick={() => navigate("/login")}
+                >
+                  Login
+                </Button>
+              )}
+            </Nav.Section>
           </Nav>
         </div>
       </header>
@@ -212,80 +198,83 @@ const data = [
 ];
 
 function MainLinks({ user }) {
+  const { count } = useSelector((state) => state.notification);
   const navigate = useNavigate();
   const links = data.map(
     ({ icon, color, label, path, indicator, requireLogin }) => {
-      // if (!requireLogin) {
-      //   return (
-      //     <UnstyledButton
-      //       onClick={() => navigate(path)}
-      //       key={label}
-      //       sx={(theme) => ({
-      //         display: "block",
-      //         width: "100%",
-      //         padding: theme.spacing.xs,
-      //         borderRadius: theme.radius.sm,
-      //         color:
-      //           theme.colorScheme === "dark"
-      //             ? theme.colors.dark[0]
-      //             : theme.black,
-
-      //         "&:hover": {
-      //           backgroundColor:
-      //             theme.colorScheme === "dark"
-      //               ? theme.colors.dark[6]
-      //               : theme.colors.gray[1],
-      //         },
-      //       })}
-      //     >
-      //       <Group p="0">
-      //         {indicator ? (
-      //           <Indicator inline label="2" size={16} offset={5}>
-      //             {icon}
-      //           </Indicator>
-      //         ) : (
-      //           icon
-      //         )}
-      //         <span className="item-label">{label}</span>
-      //       </Group>
-      //     </UnstyledButton>
-      //   );
-      // }
-      // if (requireLogin && !user) {
-      //   return null;
-      // }
-      return (
-        <UnstyledButton
-          onClick={() => navigate(path)}
-          key={label}
-          sx={(theme) => ({
-            display: "block",
-            width: "100%",
-            padding: theme.spacing.xs,
-            borderRadius: theme.radius.sm,
-            color:
-              theme.colorScheme === "dark" ? theme.colors.dark[0] : theme.black,
-
-            "&:hover": {
-              backgroundColor:
+      if (!requireLogin) {
+        return (
+          <UnstyledButton
+            onClick={() => navigate(path)}
+            key={label}
+            sx={(theme) => ({
+              display: "block",
+              width: "100%",
+              padding: theme.spacing.xs,
+              borderRadius: theme.radius.sm,
+              color:
                 theme.colorScheme === "dark"
-                  ? theme.colors.dark[6]
-                  : theme.colors.gray[1],
-            },
-          })}
-        >
-          <Group p="0">
-            {indicator ? (
-              <Indicator inline label="2" size={16} offset={5}>
-                {icon}
-              </Indicator>
-            ) : (
-              icon
-            )}
-            <span className="item-label">{label}</span>
-          </Group>
-        </UnstyledButton>
-      );
+                  ? theme.colors.dark[0]
+                  : theme.black,
+
+              "&:hover": {
+                backgroundColor:
+                  theme.colorScheme === "dark"
+                    ? theme.colors.dark[6]
+                    : theme.colors.gray[1],
+              },
+            })}
+          >
+            <Group p="0">
+              {indicator ? (
+                <Indicator inline label={count} size={16} offset={5}>
+                  {icon}
+                </Indicator>
+              ) : (
+                icon
+              )}
+              <span className="item-label">{label}</span>
+            </Group>
+          </UnstyledButton>
+        );
+      }
+      if (requireLogin && user) {
+        return (
+          <UnstyledButton
+            onClick={() => navigate(path)}
+            key={label}
+            sx={(theme) => ({
+              display: "block",
+              width: "100%",
+              padding: theme.spacing.xs,
+              borderRadius: theme.radius.sm,
+              color:
+                theme.colorScheme === "dark"
+                  ? theme.colors.dark[0]
+                  : theme.black,
+
+              "&:hover": {
+                backgroundColor:
+                  theme.colorScheme === "dark"
+                    ? theme.colors.dark[6]
+                    : theme.colors.gray[1],
+              },
+            })}
+          >
+            <Group p="0">
+              {indicator && count ? (
+                <Indicator inline label={count} size={16} offset={5}>
+                  {icon}
+                </Indicator>
+              ) : (
+                icon
+              )}
+              <span className="item-label">{label}</span>
+            </Group>
+          </UnstyledButton>
+        );
+      }
+      return null;
     }
   );
   return <>{links}</>;

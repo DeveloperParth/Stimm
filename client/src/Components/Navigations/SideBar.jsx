@@ -19,7 +19,7 @@ import { getSearch } from "../../Services/Services";
 
 function SideBar() {
   const { classes } = useStyles();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState("");
   const [results, setResults] = useState(null);
   const [opened, { close, open }] = useDisclosure(false);
@@ -29,7 +29,11 @@ function SideBar() {
     open();
   };
   const searchHandler = (e) => {
-    e.preventDefault()
+    e.preventDefault();
+    setResults(null);
+    setSearchValue("");
+    close();
+    navigate("/search", { state: { search: searchValue } });
   };
   useEffect(() => {
     if (searchValue.length > 2) {
@@ -75,7 +79,13 @@ function SideBar() {
                   {results &&
                     results.map((result) => {
                       return (
-                        <Group p="md" key={result._id} onClick={()=>navigate(`/u/${result.username}/posts`)}>
+                        <Group
+                          p="md"
+                          key={result._id}
+                          onClick={() =>
+                            navigate(`/u/${result.username}/posts`)
+                          }
+                        >
                           <Avatar />
                           <Stack spacing={0}>
                             <Text>{result.name}</Text>
@@ -88,14 +98,14 @@ function SideBar() {
               </form>
             </div>
             <div className="policies">
-              <Anchor component={Link} to="#">
+              <Anchor component={Link} to="/tos">
                 Terms Of Service
-              </Anchor>
-              <Anchor component={Link} to="#">
+              </Anchor>{" "}
+              <Anchor component={Link} to="/privacy">
                 Privacy Policy
-              </Anchor>
-              <Anchor component={Link} to="#">
-                Help Center
+              </Anchor>{" "}
+              <Anchor component={Link} to="/contact">
+                Contact
               </Anchor>
             </div>
           </Aside>

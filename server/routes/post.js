@@ -5,6 +5,7 @@ const Post = require('../models/Post')
 const Like = require('../models/Like')
 const Comment = require('../models/Comment')
 const Follow = require('../models/Follow')
+const Report = require('../models/Report')
 
 const BaseError = require('../utils/BaseError')
 const optionalAuth = require('../middlewares/optionalAuth')
@@ -16,7 +17,8 @@ const { sendNotification } = require('./../utils/SendNotification')
 router.get('/post/feed', checkUser, async (req, res, next) => {
     const user = res.locals.user
     try {
-        const offset = req.query?.offset
+        const page = req.query?.page || 1
+        const limit = req.query?.limit || 10
         const followingDocument = await Follow.find({ follower: user._id });
         if (!followingDocument) {
             return res.status(404).send({ error: 'Could not find any posts.' });
@@ -27,15 +29,8 @@ router.get('/post/feed', checkUser, async (req, res, next) => {
         const posts = await Post.aggregate([
             {
                 $match: {
-                    $and:
-                        [
-                            {
-                                deleted: {
-                                    $exists: false
-                                }
-                            },
-                            { $or: [{ author: { $in: following } }, { author: ObjectId(user._id) }] },
-                        ]
+                    $or: [{ author: { $in: following } }, { author: ObjectId(user._id) }]
+
                 },
             },
             { $sort: { createdAt: -1 } },
@@ -104,9 +99,17 @@ router.get('/post/feed', checkUser, async (req, res, next) => {
             { $addFields: { comments: { $size: '$comments' } } },
             { $addFields: { likeFlag: { $cond: { if: { $size: '$likeFlag' }, then: true, else: false } } } },
             { $addFields: { bookmarkFlag: { $cond: { if: { $size: '$bookmarkFlag' }, then: true, else: false } } } },
-            { $unwind: '$author' }
+            { $unwind: '$author' },
+            { $skip: (page * limit) - limit },
+            { $limit: limit },
         ])
-        return res.status(200).json({ posts })
+        const count = await Post.countDocuments({
+            $match: {
+                $or: [{ author: { $in: following } }, { author: ObjectId(user._id) }]
+
+            },
+        })
+        return res.status(200).json({ posts, count })
     } catch (error) {
         next(error)
     }
@@ -324,6 +327,14 @@ router.post('/post/create', checkUser, upload.array('attachments', 1), async (re
 })
 router.post('/post/:id/report', checkUser, upload.array('attachments', 1), async (req, res, next) => {
     try {
+        const post = await Post.findById(req.params.id)
+        if (!post) throw new BaseError()
+        const report = new Report({
+            reportedBy: res.locals.user._id,
+            contentId: req.params.id,
+            model_type: 'Post'
+        })
+        await report.save()
         return res.status(200).json({ message: 'Post has been reported' })
     } catch (error) {
         next(error)
@@ -334,6 +345,9 @@ router.delete('/post/:id', checkUser, async (req, res, next) => {
         const post = await Post.findById(req.params.id)
         if (!post) throw new BaseError(404, "No post found")
         if (!post.author.equals(post.author)) throw new BaseError(403, "Unauthorized")
+        await Comment.deleteMany({ post: post._id })
+        await Like.deleteMany({ post: post._id })
+        await Report.deleteMany({ contentId: post._id, model_type: 'Post' })
         await Post.findByIdAndDelete(post._id)
         return res.status(200).json({ message: "Post deleted" })
     } catch (error) {
@@ -366,7 +380,7 @@ router.post('/post/:id/like', checkUser, async (req, res, next) => {
                 post
             })
             const like = await newLike.save()
-            if (like.author != post.author) {
+            if (res.locals.user._id != post.author) {
                 sendNotification(post.author, `@${res.locals.user.username} liked your post`)
             }
             return res.status(200).json({ message: 'Liked', like })

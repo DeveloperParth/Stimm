@@ -1,6 +1,5 @@
-import { Avatar, Group, Loader, Text } from "@mantine/core";
-import React from "react";
-import { useState, useEffect } from "react";
+import { Avatar,  Group, Loader, Text } from "@mantine/core";
+import React,{ useState, useEffect } from "react";
 import { getUser } from "../../Services/Services";
 
 function HoverUserCard({ username }) {
@@ -25,9 +24,9 @@ function HoverUserCard({ username }) {
             <Text size="xs">@{user.username}</Text>
           </Group>
           <Group>
-            <Text>Posts {user.posts}</Text>
-            <Text>Followers {user.followers}</Text>
-            <Text>Followings {user.followings}</Text>
+            <Text>Posts {user.posts || 0}</Text>
+            <Text>Followers {user.followers || 0}</Text>
+            <Text>Followings {user.following || 0}</Text>
           </Group>
         </div>
       </Group>

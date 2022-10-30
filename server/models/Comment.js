@@ -15,10 +15,6 @@ const CommentSchema = new Mongoose.Schema({
         type: String,
         required: [true, 'Comment is required']
     },
-    parent: {
-        type: Mongoose.Schema.Types.ObjectId,
-        ref: 'Comment',
-    }
 }, {timestamps: true})
 
 module.exports = Mongoose.model('Comment', CommentSchema, 'Comments')

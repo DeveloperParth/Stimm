@@ -3,20 +3,40 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { useDispatch } from "react-redux";
 import { removePost } from "../../Redux/Features/feedSlice";
-import { bookmarkPost, deletePost, likePost } from "../../Services/Services";
+import {
+  bookmarkPost,
+  deletePost,
+  likePost,
+  reportPost,
+  sortDate,
+} from "../../Services/Services";
 import CreateComment from "../../Components/Comment/CreateComment";
 import HoverUserCard from "../../Components/Post/HoverUserCard";
 
-import { Avatar, Image, Box, Mark, Anchor, ActionIcon } from "@mantine/core";
+import {
+  Avatar,
+  Image,
+  Box,
+  Anchor,
+  ActionIcon,
+  Text,
+  Group,
+  Menu,
+} from "@mantine/core";
+
 import { useHover } from "@mantine/hooks";
 import {
   IconBookmark,
+  IconBookmarkOff,
+  IconDots,
+  IconFlag,
   IconHeart,
   IconMessageCircle,
-  IconRepeat,
+  IconShare,
   IconTrash,
 } from "@tabler/icons";
 import PostButton from "../../Components/Post/PostButton";
+import { showNotification } from "@mantine/notifications";
 
 function Post({ post, index, setBookmarks }) {
   const dispatch = useDispatch();
@@ -41,10 +61,12 @@ function Post({ post, index, setBookmarks }) {
   const createCommentHandler = () => {
     setCreateCommentOpened(true);
   };
+  const reportPostHandler = async () => {
+    await reportPost(post._id);
+    showNotification({ title: "Post has been reported" });
+  };
   const postClickHandler = (e) => {
-    if (e.target.tagName === "DIV") {
-      navigate(`/p/${post._id}`, { state: { location } });
-    }
+    navigate(`/p/${post._id}`, { state: { location } });
   };
   const bookmarkPostHandler = async () => {
     await bookmarkPost(post._id);
@@ -66,7 +88,8 @@ function Post({ post, index, setBookmarks }) {
           }`,
         })}
       >
-        <div className="post" onClick={postClickHandler}>
+        <div className="post">
+          <Anchor onClick={postClickHandler} className="redirect"></Anchor>
           <div className="post__avatar">
             <Avatar
               src={process.env.REACT_APP_UPLOADS_PATH + post.author.avatar}
@@ -76,60 +99,113 @@ function Post({ post, index, setBookmarks }) {
           <div className="post__body">
             <div className="post__header">
               <div className="post__headerText">
-                <h3 ref={ref}>
-                  {post.author.name}
-                  <Link to={`/u/${post.author.username}/posts`} ref={ref}>
-                    <span className="post__headerSpecial" ref={ref}>
-                      @{post.author.username}
-                    </span>
-                  </Link>
-                  {hovered ? (
-                    <Box
-                      ref={ref}
-                      sx={(theme) => ({
-                        backgroundColor:
-                          theme.colorScheme === "dark"
-                            ? theme.colors.dark[6]
-                            : theme.colors.gray[1],
-                        padding: theme.spacing.xl,
-                        borderRadius: theme.radius.md,
-                        position: "absolute",
-                        zIndex: "10000",
-                      })}
+                <Group spacing="xs" align="baseline">
+                  <Group spacing={3} ref={ref}>
+                    <Text weight={500} style={{ cursor: "pointer" }}>
+                      {post.author.name}
+                    </Text>
+                    <Anchor
+                      component={Link}
+                      to={`/u/${post.author.username}/posts`}
                     >
-                      <HoverUserCard username={post.author.username} />
-                    </Box>
-                  ) : null}
-                </h3>
+                      <span className="post__headerSpecial">
+                        @{post.author.username}
+                      </span>
+                    </Anchor>
+                    {hovered ? (
+                      <Box
+                        ref={ref}
+                        sx={(theme) => ({
+                          backgroundColor:
+                            theme.colorScheme === "dark"
+                              ? theme.colors.dark[6]
+                              : theme.colors.gray[1],
+                          padding: theme.spacing.xl,
+                          borderRadius: theme.radius.md,
+                          position: "absolute",
+                          top: "2rem",
+                          zIndex: "10000",
+                        })}
+                      >
+                        <HoverUserCard username={post.author.username} />
+                      </Box>
+                    ) : null}
+                  </Group>
+                  &bull;
+                  <Text color="dimmed" size="xs">
+                    {sortDate(Date.parse(post.createdAt))}
+                  </Text>
+                </Group>
                 <div style={{ float: "right" }}>
-                  {post.isOwner ? (
-                    <ActionIcon onClick={deletePostHandler}>
-                      <IconTrash size={18} />
-                    </ActionIcon>
-                  ) : null}
-                  <ActionIcon onClick={bookmarkPostHandler}>
-                    <IconBookmark fill={post.bookmarkFlag ? "white" : "none"} />
-                  </ActionIcon>
+                  <Menu width={200}>
+                    <Menu.Target>
+                      <ActionIcon>
+                        <IconDots />
+                      </ActionIcon>
+                    </Menu.Target>
+
+                    <Menu.Dropdown>
+                      {post.bookmarkFlag ? (
+                        <Menu.Item
+                          onClick={bookmarkPostHandler}
+                          icon={<IconBookmarkOff size={20} />}
+                        >
+                          Remove Bookmark
+                        </Menu.Item>
+                      ) : (
+                        <Menu.Item
+                          onClick={bookmarkPostHandler}
+                          icon={<IconBookmark size={20} />}
+                        >
+                          Bookmark
+                        </Menu.Item>
+                      )}
+
+                      <Menu.Item
+                        onClick={reportPostHandler}
+                        icon={<IconFlag size={20} />}
+                      >
+                        Report post
+                      </Menu.Item>
+                      {post.isOwner ? (
+                        <Menu.Item
+                          icon={<IconTrash size={18} />}
+                          color="red"
+                          onClick={deletePostHandler}
+                        >
+                          Delete post
+                        </Menu.Item>
+                      ) : null}
+                    </Menu.Dropdown>
+                  </Menu>
                 </div>
               </div>
+            </div>
+            <div className="post__content">
               <div className="post__headerDescription">
                 <p>
                   {post.body.split(" ").map((w) => {
                     // console.log(w);
                     if (w.startsWith("#")) {
                       return (
-                        <Link
+                        <Anchor
+                          component={Link}
                           to={`/explore/?tag=${w.replace("#", "")}`}
                           key={w}
                         >
-                          <Mark> {w} </Mark>
-                        </Link>
+                          <> {w} </>
+                        </Anchor>
                       );
                     }
                     if (w.startsWith("@")) {
                       w = w.replace("@", "");
                       return (
-                        <Anchor key={w} component={Link} to={`/u/${w}/posts`}>
+                        <Anchor
+                          key={w}
+                          component={Link}
+                          to={`/u/${w}/posts`}
+                          underline
+                        >
                           {w}
                         </Anchor>
                       );
@@ -139,18 +215,29 @@ function Post({ post, index, setBookmarks }) {
                 </p>
               </div>
               {post.attachments?.length ? (
-                <div className="attachments">
+                <Box
+                  sx={{
+                    overflow: "hidden",
+                    borderRadius: ".5rem",
+                    display: "flex",
+                    gap: "2px",
+                  }}
+                >
                   {post.attachments.map((a) => (
                     <Image
-                      src={"http://localhost:5000/" + a.path}
-                      radius="md"
+                      src={
+                        process.env.REACT_APP_UPLOADS_PATH +
+                        a.path.replace("uploads", "")
+                      }
+                      radius="0"
                       withPlaceholder
                       key={a}
                     />
                   ))}
-                </div>
+                </Box>
               ) : null}
             </div>
+
             <div className="post__footer">
               <PostButton
                 color="blue"
@@ -161,8 +248,7 @@ function Post({ post, index, setBookmarks }) {
 
               <PostButton
                 color="green"
-                icon={<IconRepeat size={20} />}
-                text="20"
+                icon={<IconShare size={20} />}
               />
               <PostButton
                 color="pink"

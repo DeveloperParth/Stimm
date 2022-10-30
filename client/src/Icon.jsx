@@ -3,7 +3,7 @@ import React from "react";
 
 function Icon() {
   const theme = useMantineTheme();
-  const iconColor = theme.colorScheme === "dark" ? "#fff": "black";
+  const iconColor = theme.colorScheme === "dark" ? "white" : "black";
   return (
     <>
       <svg

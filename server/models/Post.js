@@ -15,9 +15,6 @@ const PostSchema = new Mongoose.Schema({
         path: String
     }],
     tags: [String],
-    deleted: {
-        type: Boolean
-    }
 }, { timestamps: true })
 
 module.exports = Mongoose.model('Post', PostSchema, 'Posts')
