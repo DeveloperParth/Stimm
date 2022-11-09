@@ -69,11 +69,6 @@ function HomePage() {
         ) : (
           <div>{mappedPosts}</div>
         )}
-        {feed.loading && feed.posts.length && (
-          <Center>
-            <PostPlaceHolder />
-          </Center>
-        )}
       </Container>
     </>
   );
