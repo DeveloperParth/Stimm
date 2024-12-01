@@ -36,7 +36,7 @@ export class UserService {
       to: user.email,
       subject: "Login OTP",
       template: "login-otp",
-      data: {
+      context: {
         otp: this.generateOtp(),
       },
     });
