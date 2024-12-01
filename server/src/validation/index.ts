@@ -21,6 +21,6 @@ export const sendMailSchema = z.object({
   to: z.union([z.string().email(), z.array(z.string().email())]),
   subject: z.string(),
   template: z.string(),
-  data: z.record(z.any()),
+  context: z.record(z.any()),
 });
 export type SendMailSchema = z.infer<typeof sendMailSchema>;
