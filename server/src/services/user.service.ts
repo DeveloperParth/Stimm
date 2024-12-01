@@ -15,7 +15,6 @@ export class UserService {
     emailAddress: string,
     shouldThrow: boolean = false
   ): Promise<User | undefined> {
-    console.log("🚀 ~ UserService ~ db.query.users:", db.query);
     const user = await db.query.users.findFirst({
       where: ({ email }, { eq }) => eq(email, emailAddress),
     });
