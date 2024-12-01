@@ -23,6 +23,23 @@ export class UserService {
     }
     return user;
   }
+  async findUserById(userId: string, shouldThrow: true): Promise<User>;
+  async findUserById(
+    userId: string,
+    shouldThrow?: false
+  ): Promise<User | undefined>;
+  async findUserById(
+    userId: string,
+    shouldThrow: boolean = false
+  ): Promise<User | undefined> {
+    const user = await db.query.users.findFirst({
+      where: ({ id }, { eq }) => eq(id, userId),
+    });
+    if (!user && shouldThrow) {
+      throw new errors.NotFoundError();
+    }
+    return user;
+  }
   async initializeLogin(data: initializeLoginSchema) {
     let user = await this.findUserByEmail(data.email);
     if (!user) {
