@@ -1,14 +1,16 @@
-import { mailWorker } from "./mail.worker";
+import { Worker } from "bullmq";
 
-const workers = [mailWorker];
-
-workers.forEach((worker) => {
+const workers = ["mail-worker"];
+workers.forEach((workerFolder) => {
+  const worker = require(`./${workerFolder}/worker`).default;
+  if (!(worker instanceof Worker)) throw new Error("Invalid worker");
   worker.on("completed", (job) => {
-    console.log(`Job with id ${job.id} has been completed`);
+    console.log(`Job ${job.id} completed`);
   });
   worker.on("failed", (job, err) => {
-    console.log(
-      `Job with id ${job?.id} has been failed with error ${err.message}`
-    );
+    console.log(`Job ${job?.id} failed with ${err.message}`);
+  });
+  worker.on("error", (err) => {
+    console.log(err);
   });
 });
