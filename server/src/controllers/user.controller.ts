@@ -7,5 +7,8 @@ export class UserController {
   async initializeLogin(req: Request, res: Response) {
     const data = initializeLoginSchema.parse(req.body);
     await this.userService.initializeLogin(data);
+    return res.status(200).json({
+      message: "OTP sent to your email",
+    });
   }
 }
