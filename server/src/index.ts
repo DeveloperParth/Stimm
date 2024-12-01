@@ -9,5 +9,6 @@ const server = new Server({
   urlEncoded: true,
   useJSON: true,
 });
-
+// todo: move this to separate process
+require("@/workers/start-workers");
 server.start();
