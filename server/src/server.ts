@@ -1,10 +1,6 @@
-import express, { RequestHandler } from "express";
+import express from "express";
 import { IServer, IServerConfig, Route } from "./types";
-
-const asyncHandler: (fn: RequestHandler) => RequestHandler =
-  (fn) => (req, res, next) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
+import { asyncHandler } from "./utils";
 
 class Server implements IServer {
   private app: express.Application;
