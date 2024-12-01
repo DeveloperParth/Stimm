@@ -1,3 +1,3 @@
-import { mailQueue } from "./mail.worker";
+import { mailQueue } from "./mail-worker";
 
 export { mailQueue };
