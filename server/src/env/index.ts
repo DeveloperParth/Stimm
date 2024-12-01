@@ -11,6 +11,11 @@ const envSchema = z.object({
     PASSWORD: z.string(),
     DATABASE: z.string(),
   }),
+  aws: z.object({
+    ACCESS_KEY: z.string(),
+    SECRET_KEY: z.string(),
+    REGION: z.string(),
+  }),
   port: z.number({ coerce: true }),
 });
 
@@ -19,12 +24,16 @@ const parsed = envSchema.safeParse({
   redis: {
     url: process.env.REDIS_URL,
   },
-
   db: {
     HOST: process.env.POSTGRES_HOST,
     USER: process.env.POSTGRES_USER,
     PASSWORD: process.env.POSTGRES_PASSWORD,
     DATABASE: process.env.POSTGRES_DB,
+  },
+  aws: {
+    ACCESS_KEY: process.env.AWS_ACCESS_KEY,
+    SECRET_KEY: process.env.AWS_SECRET_KEY,
+    REGION: process.env.AWS_REGION,
   },
   port: process.env.PORT,
 });
