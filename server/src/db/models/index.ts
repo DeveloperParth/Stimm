@@ -1,12 +1,11 @@
-import exp from "constants";
 import { relations, sql } from "drizzle-orm";
 import { integer, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
+import { v4 } from "uuid";
 
 const commonFields = {
   id: varchar()
     .$defaultFn(() => {
-      // todo: generate uuid
-      return "";
+      return v4();
     })
     .notNull()
     .primaryKey(),
