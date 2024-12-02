@@ -1,6 +1,7 @@
 import express from "express";
 import { IServer, IServerConfig, Route } from "./types";
 import { asyncHandler } from "./utils";
+import cors from "cors";
 
 class Server implements IServer {
   private app: express.Application;
@@ -36,7 +37,9 @@ class Server implements IServer {
     if (this.config.useJSON) this.app.use(express.json());
     if (this.config.urlEncoded)
       this.app.use(express.urlencoded({ extended: true }));
-
+    if (this.config.cors) {
+      this.app.use(cors({ origin: this.config.cors }));
+    }
     this.setupRoutes();
 
     this.app.use((err, req, res, next) => {

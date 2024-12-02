@@ -8,6 +8,7 @@ const server = new Server({
   port: env.port,
   urlEncoded: true,
   useJSON: true,
+  cors: "*",
 });
 // todo: move this to separate process
 require("@/workers/start-workers");

@@ -15,7 +15,7 @@ export const insertUserSchema = createInsertSchema(users).omit({
 export const initializeLoginSchema = z.object({
   email: z.string().email(),
 });
-export type initializeLoginSchema = z.infer<typeof initializeLoginSchema>;
+export type InitializeLoginSchema = z.infer<typeof initializeLoginSchema>;
 
 export const sendMailSchema = z.object({
   to: z.union([z.string().email(), z.array(z.string().email())]),
@@ -24,3 +24,9 @@ export const sendMailSchema = z.object({
   context: z.record(z.any()),
 });
 export type SendMailSchema = z.infer<typeof sendMailSchema>;
+
+export const verifyLoginSchema = z.object({
+  email: z.string().email(),
+  otp: z.number({ coerce: true }),
+});
+export type VerifyLoginSchema = z.infer<typeof verifyLoginSchema>;

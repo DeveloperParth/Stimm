@@ -1,7 +1,8 @@
+import { eq } from "drizzle-orm";
 import { db } from "../db";
 import { otps, User, users } from "../db/models";
 import errors from "../errors";
-import { initializeLoginSchema } from "../validation";
+import { InitializeLoginSchema, VerifyLoginSchema } from "../validation";
 import { MailService } from "./mail.service";
 
 export class UserService {
@@ -40,7 +41,7 @@ export class UserService {
     }
     return user;
   }
-  async initializeLogin(data: initializeLoginSchema) {
+  async initializeLogin(data: InitializeLoginSchema) {
     let user = await this.findUserByEmail(data.email);
     if (!user) {
       user = await this.createNewUser({ email: data.email });
@@ -57,6 +58,18 @@ export class UserService {
         otp: this.generateOtp(),
       },
     });
+    return;
+  }
+  async verifyLogin(data: VerifyLoginSchema) {
+    const user = await this.findUserByEmail(data.email, true);
+    const otpsData = await db.query.otps.findMany({
+      where: ({ userId, otp }, { eq }) => eq(userId, user.id),
+    });
+    const otp = otpsData.find((otp) => otp.otp === data.otp);
+    if (!otp) {
+      throw new errors.UnauthorizedError({ message: "Invalid OTP" });
+    }
+    await db.delete(otps).where(eq(otps.id, otp.id));
     return;
   }
   async createNewUser(data: { email: string }): Promise<User> {

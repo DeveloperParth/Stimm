@@ -9,7 +9,16 @@ class NotFoundError extends Error {
     this.name = "NotFoundError";
   }
 }
+class UnauthorizedError extends Error {
+  status: number = 401;
+  constructor(options: CommonErrorConstructor = {}) {
+    const message = options.message || "Unauthorized";
+    super(message);
+    this.name = "UnauthorizedError";
+  }
+}
 const errors = {
   NotFoundError,
+  UnauthorizedError,
 };
 export default errors;

@@ -1,5 +1,9 @@
 import { Request, Response } from "express";
-import { initializeLoginSchema } from "../validation";
+import {
+  InitializeLoginSchema,
+  initializeLoginSchema,
+  verifyLoginSchema,
+} from "../validation";
 import { UserService } from "../services";
 
 export class UserController {
@@ -12,7 +16,13 @@ export class UserController {
     });
     return;
   }
-  async verifyLogin(req: Request, res: Response) {}
+  async verifyLogin(req: Request, res: Response) {
+    const data = verifyLoginSchema.parse(req.body);
+    await this.userService.verifyLogin(data);
+    res.json({
+      message: "Login successful",
+    });
+  }
   async getMe(req: Request, res: Response) {
     const userId = req.user.id;
     const user = await this.userService.findUserById(userId, true);

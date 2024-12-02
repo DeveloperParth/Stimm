@@ -14,6 +14,7 @@ const worker = new Worker<SendMailSchema>(
       to: data.to,
       subject: data.subject,
       html,
+      from: "no-reply@stimm.theparth.dev",
     });
   },
   {

@@ -22,6 +22,7 @@ export interface IServer {
 export interface IServerConfig {
   port?: number;
   routes: Route[];
-  useJSON: boolean;
-  urlEncoded: boolean;
+  useJSON?: boolean;
+  urlEncoded?: boolean;
+  cors?: string;
 }
