@@ -19,8 +19,6 @@ import { initializeLogin } from "@/services";
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 export function LoginForm({ className, ...props }: UserAuthFormProps) {
-  const [isLoading, setIsLoading] = useState(false);
-
   const initLoginMutation = useMutation({
     mutationFn: (data: InitializeLoginSchema) => initializeLogin(data),
   });
@@ -32,7 +30,7 @@ export function LoginForm({ className, ...props }: UserAuthFormProps) {
   const form = useForm<InitializeLoginSchema>({
     resolver: zodResolver(initializeLoginSchema),
   });
-
+  const isLoading = initLoginMutation.isPending;
   return (
     <div className={cn("grid gap-6", className)} {...props}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
