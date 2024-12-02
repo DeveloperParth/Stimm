@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { initializeLogin } from "@/services";
 
-interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {}
+type UserAuthFormProps = React.HTMLAttributes<HTMLDivElement>;
 
 export function LoginForm({ className, ...props }: UserAuthFormProps) {
   const initLoginMutation = useMutation({
