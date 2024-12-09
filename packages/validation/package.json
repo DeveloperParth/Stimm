@@ -1,0 +1,12 @@
+{
+    "name": "@tradepepe/validation",
+    "version": "1.0.0",
+    "private": true,
+    "main": "./src/index.ts",
+    "files": [
+        "src/**"
+    ],
+    "dependencies": {
+        "zod": "^3.23.8"
+    }
+}
