@@ -2,14 +2,14 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Heart, MessageCircle, Share2, Users } from "lucide-react";
+import Brand from "@/components/brand";
 
 export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <header className="px-4 lg:px-6 h-14 flex items-center">
         <Link className="flex items-center justify-center" href="#">
-          <Users className="h-6 w-6" />
-          <span className="ml-2 text-2xl font-bold">Stimm</span>
+          <Brand />
         </Link>
       </header>
       <main className="flex-1">
