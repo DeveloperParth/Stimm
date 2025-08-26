@@ -16,11 +16,16 @@ import Header from "./../Components/Navigations/Header";
 import { useParams } from "react-router-dom";
 import { getConverstionName } from "../Services/Services";
 import { socket } from "../App";
-import { IconSend } from "@tabler/icons";
+import { IconSend, IconPhone } from "@tabler/icons";
+import VoiceCallModal from "../Components/VoiceCall/VoiceCallModal";
+import { showNotification } from "@mantine/notifications";
 
 function MessagePage() {
   const [messages, setMessages] = useState(null);
   const [converstion, setConverstion] = useState(null);
+  const [showCallModal, setShowCallModal] = useState(false);
+  const [incomingCallData, setIncomingCallData] = useState(null);
+  const [isIncomingCall, setIsIncomingCall] = useState(false);
   const { _id, username, avatar } = useSelector((state) => state.auth.user);
   const lastMessageRef = useRef(null);
   const params = useParams();
@@ -38,6 +43,29 @@ function MessagePage() {
       },
     ]);
   };
+
+  const startVoiceCall = () => {
+    if (converstion && converstion.users.length === 2) {
+      const otherUser = converstion.users.find(user => user._id !== _id);
+      
+      if (otherUser) {
+        const callData = {
+          conversationId: converstion._id,
+          otherUserId: otherUser._id,
+          otherUser: otherUser
+        };
+        
+        setIncomingCallData(callData);
+        setIsIncomingCall(false);
+        setShowCallModal(true);
+      }
+    } else {
+      showNotification({
+        title: "Voice calls are only available in direct messages",
+        color: "yellow"
+      });
+    }
+  };
   useEffect(() => {
     (async () => {
       const { data } = await API.get(`/converstion/${params.id}/messages`);
@@ -53,21 +81,38 @@ function MessagePage() {
         setMessages((m) => [...m, message]);
       }
     });
-    // socket.on("typing", (message) => {
-    //   if (message.converstion === params.id) {
-    //     setTyping(message.message);
-    //     setTimeout(() => {
-    //       setTyping(null);
-    //     }, 1000);
-    //   }
-    // });
+
+    // Voice call event listeners
+    socket.on("call-offer", ({ from, offer, conversationId }) => {
+      if (conversationId === params.id) {
+        // Find the caller info from conversation
+        const otherUser = converstion?.users?.find(user => user._id === from);
+        if (otherUser) {
+          const callData = {
+            conversationId,
+            otherUserId: from,
+            otherUser,
+            offer
+          };
+          
+          setIncomingCallData(callData);
+          setIsIncomingCall(true);
+          setShowCallModal(true);
+          
+          showNotification({
+            title: `Incoming call from ${otherUser.username}`,
+            color: "blue"
+          });
+        }
+      }
+    });
 
     return () => {
       socket.off("message");
-      socket.off("typing");
+      socket.off("call-offer");
     };
     // eslint-disable-next-line
-  }, [socket]);
+  }, [socket, params.id, converstion]);
   useEffect(() => {
     lastMessageRef.current?.scrollIntoView({
       behavior: "smooth",
@@ -80,8 +125,31 @@ function MessagePage() {
   if (!converstion) return <Container size="600px">Loading ...</Container>;
   return (
     <>
+      <VoiceCallModal 
+        isOpen={showCallModal}
+        onClose={() => {
+          setShowCallModal(false);
+          setIncomingCallData(null);
+          setIsIncomingCall(false);
+        }}
+        callData={incomingCallData}
+        currentUserId={_id}
+        isIncoming={isIncomingCall}
+      />
       <Container size="600px">
-        <Header title={getConverstionName(converstion, _id)} showGoBackButton />
+        <Group position="apart" mb="md">
+          <Header title={getConverstionName(converstion, _id)} showGoBackButton />
+          {converstion.users.length === 2 && (
+            <ActionIcon 
+              size="lg" 
+              color="blue" 
+              variant="light"
+              onClick={startVoiceCall}
+            >
+              <IconPhone size={20} />
+            </ActionIcon>
+          )}
+        </Group>
         <Stack sx={{ height: "100%" }}>
           <Stack sx={{ flex: "1 1" }}>
             {messages &&
@@ -159,9 +227,9 @@ function MessagePage() {
             <form onSubmit={submitHandler}>
               <Group noWrap>
                 <Box sx={{ width: "100%" }}>
-                  <TextInput name="message" />
+                  <TextInput name="message" placeholder="Type a message..." />
                 </Box>
-                <ActionIcon>
+                <ActionIcon type="submit">
                   <IconSend />
                 </ActionIcon>
               </Group>

@@ -40,6 +40,38 @@ io.on('connection', (socket) => {
     socket.on('add user', (id) => {
         id ? global.users[id] = socket : null
     })
+    
+    // Voice call signaling events
+    socket.on('call-offer', ({ to, from, offer, conversationId }) => {
+        if (global.users[to]) {
+            global.users[to].emit('call-offer', { from, offer, conversationId });
+        }
+    });
+
+    socket.on('call-answer', ({ to, from, answer }) => {
+        if (global.users[to]) {
+            global.users[to].emit('call-answer', { from, answer });
+        }
+    });
+
+    socket.on('ice-candidate', ({ to, candidate }) => {
+        if (global.users[to]) {
+            global.users[to].emit('ice-candidate', { candidate });
+        }
+    });
+
+    socket.on('call-end', ({ to, from }) => {
+        if (global.users[to]) {
+            global.users[to].emit('call-end', { from });
+        }
+    });
+
+    socket.on('call-reject', ({ to, from }) => {
+        if (global.users[to]) {
+            global.users[to].emit('call-reject', { from });
+        }
+    });
+
     // socket.on('typing', async ({ converstion: id, sender }) => {
     //     const c = await Converstion.findById(id)
     //     c.users?.map(u => u !== sender && global.users[u]?.emit('typing', { converstion: c._id, message: 'typing' }))

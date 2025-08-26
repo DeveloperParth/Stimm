@@ -65,9 +65,28 @@ function App() {
         showNotification({ title: `${message.sender.username} send a message`, message: message.message })
       }
     })
+
+    // Global voice call event listeners
+    socket.on('call-offer', ({ from, conversationId }) => {
+      const currentPath = window.location.pathname;
+      const currentConversationId = currentPath.split('messages/')[1];
+      
+      // Only show notification if user is not in the conversation where call is happening
+      if (!currentConversationId || currentConversationId !== conversationId) {
+        showNotification({ 
+          title: `Incoming voice call`, 
+          message: 'Click to view the conversation',
+          onClick: () => {
+            window.location.href = `/messages/${conversationId}`;
+          }
+        });
+      }
+    });
+
     return () => {
       socket.off('notificaiton');
       socket.off('message');
+      socket.off('call-offer');
     };
     // eslint-disable-next-line
   }, [socket])
