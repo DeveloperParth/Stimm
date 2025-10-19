@@ -1,0 +1,10 @@
+{
+    "name": "validations",
+    "files": [
+        "**/*.ts"
+    ],
+    "main": "index.ts",
+    "dependencies": {
+        "zod": "^4.1.12"
+    }
+}

@@ -1,11 +1,9 @@
 {
-  "name": "stimm",
-  "packageManager": "npm@10.9.0",
-  "devDependencies": {
-    "turbo": "^2.3.3"
-  },
-  "workspaces": [
-    "packages/*",
-    "apps/*"
-  ]
+  "name": "Stimm",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.18.3"
 }
